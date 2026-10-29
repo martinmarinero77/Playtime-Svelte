@@ -53,7 +53,7 @@
 
         try {
             const response = await fetch(
-                "http://localhost:5000/api/Auth/register",
+                "http://localhost:5254/api/Auth/register",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -73,11 +73,15 @@
             const data = await response.json();
 
             if (!response.ok || !data.success) {
-                throw new Error(
-                    data.message ||
-                        (data.errors && data.errors.join(", ")) ||
-                        "Error al registrar la cuenta.",
-                );
+                let errorMsg = data.message || "Error al registrar la cuenta.";
+                if (data.errors) {
+                    if (Array.isArray(data.errors)) {
+                        errorMsg = data.errors.join(", ");
+                    } else if (typeof data.errors === "object") {
+                        errorMsg = Object.values(data.errors).flat().join(", ");
+                    }
+                }
+                throw new Error(errorMsg);
             }
 
             successMessage =

@@ -2,6 +2,7 @@
   import Welcome from "./pages/Welcome.svelte";
   import Login from "./pages/Login.svelte";
   import Register from "./pages/Register.svelte";
+  import Home from "./pages/Home.svelte";
 
   // Estado simple para controlar la vista actual: 'welcome', 'login', 'register'
   let currentView = "welcome";
@@ -26,5 +27,7 @@
     <Login onNavigate={navigate} />
   {:else if currentView === "register"}
     <Register onNavigate={navigate} />
+  {:else if currentView === "home"}
+    <Home onNavigate={navigate} />
   {/if}
 </div>

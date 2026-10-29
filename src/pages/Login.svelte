@@ -33,7 +33,7 @@
             // Endpoint de tu PlayTimeAPI en .NET
             // Ajusta el puerto si tu API corre en otro (ej: 5000, 5001, 7000, etc.)
             const response = await fetch(
-                "http://localhost:5000/api/Auth/login",
+                "http://localhost:5254/api/Auth/login",
                 {
                     method: "POST",
                     headers: {
