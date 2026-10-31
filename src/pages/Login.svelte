@@ -57,8 +57,16 @@
             // Guardar sesión/token si el usuario eligió "Recordarme"
             if (rememberMe) {
                 localStorage.setItem("playtime_token", data.data.token);
+                localStorage.setItem(
+                    "playtime_user",
+                    JSON.stringify(data.data.usuario),
+                );
             } else {
                 sessionStorage.setItem("playtime_token", data.data.token);
+                sessionStorage.setItem(
+                    "playtime_user",
+                    JSON.stringify(data.data.usuario),
+                );
             }
 
             // Navegar al Home luego de un breve instante

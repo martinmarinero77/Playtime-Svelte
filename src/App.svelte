@@ -3,11 +3,14 @@
   import Login from "./pages/Login.svelte";
   import Register from "./pages/Register.svelte";
   import Home from "./pages/Home.svelte";
+  import Comunidad from "./pages/Comunidad.svelte";
 
-  // Estado simple para controlar la vista actual: 'welcome', 'login', 'register'
+  // Estado simple para controlar la vista actual y opciones iniciales
   let currentView = "welcome";
+  let navOptions = {};
 
-  function navigate(view) {
+  function navigate(view, options = {}) {
+    navOptions = options;
     currentView = view;
   }
 </script>
@@ -29,5 +32,11 @@
     <Register onNavigate={navigate} />
   {:else if currentView === "home"}
     <Home onNavigate={navigate} />
+  {:else if currentView === "comunidad"}
+    <Comunidad
+      onNavigate={navigate}
+      initialTab={navOptions.tab || "explorar"}
+      initialOpenCreate={Boolean(navOptions.abrirCrear)}
+    />
   {/if}
 </div>

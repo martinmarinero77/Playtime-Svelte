@@ -1,8 +1,10 @@
 <script>
     import Navbar from "../components/Navbar.svelte";
+    import { obtenerUsuarioActual } from "../lib/api.js";
 
     export let onNavigate = () => {};
-    export let usuario = { nombre: "Martín", inicial: "M" };
+
+    const usuario = obtenerUsuarioActual();
 
     let searchTerm = "";
 
@@ -102,7 +104,28 @@
             </h2>
 
             <div class="grid grid-cols-2 gap-3">
-                <!-- Reservar Cancha -->
+                <!-- 1. Organizar Partido -->
+                <button
+                    type="button"
+                    onclick={() =>
+                        onNavigate("comunidad", {
+                            tab: "mios",
+                            abrirCrear: true,
+                        })}
+                    class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex flex-col items-center text-center cursor-pointer"
+                >
+                    <div
+                        class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-2"
+                    >
+                        <i class="bi bi-plus-circle-fill" aria-hidden="true"
+                        ></i>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-700"
+                        >Organizar Partido</span
+                    >
+                </button>
+
+                <!-- 2. Reservar Cancha -->
                 <button
                     type="button"
                     onclick={() => onNavigate("reservas")}
@@ -111,30 +134,31 @@
                     <div
                         class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl mb-2"
                     >
-                        <i class="bi bi-calendar-check-fill"></i>
+                        <i class="bi bi-calendar-check-fill" aria-hidden="true"
+                        ></i>
                     </div>
                     <span class="text-xs font-semibold text-slate-700"
                         >Reservar Cancha</span
                     >
                 </button>
 
-                <!-- Buscar Jugadores -->
+                <!-- 3. Ver Partidos Públicos -->
                 <button
                     type="button"
-                    onclick={() => onNavigate("comunidad")}
+                    onclick={() => onNavigate("comunidad", { tab: "explorar" })}
                     class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex flex-col items-center text-center cursor-pointer"
                 >
                     <div
-                        class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-2"
+                        class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-2"
                     >
-                        <i class="bi bi-people-fill"></i>
+                        <i class="bi bi-people-fill" aria-hidden="true"></i>
                     </div>
                     <span class="text-xs font-semibold text-slate-700"
-                        >Buscar Jugadores</span
+                        >Ver Partidos Públicos</span
                     >
                 </button>
 
-                <!-- Mis Torneos -->
+                <!-- 4. Ver Torneos -->
                 <button
                     type="button"
                     onclick={() => onNavigate("torneos")}
@@ -143,26 +167,10 @@
                     <div
                         class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-2"
                     >
-                        <i class="bi bi-trophy-fill"></i>
+                        <i class="bi bi-trophy-fill" aria-hidden="true"></i>
                     </div>
                     <span class="text-xs font-semibold text-slate-700"
-                        >Mis Torneos</span
-                    >
-                </button>
-
-                <!-- Canchas Cercanas -->
-                <button
-                    type="button"
-                    onclick={() => onNavigate("reservas")}
-                    class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex flex-col items-center text-center cursor-pointer"
-                >
-                    <div
-                        class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-2"
-                    >
-                        <i class="bi bi-geo-alt-fill"></i>
-                    </div>
-                    <span class="text-xs font-semibold text-slate-700"
-                        >Canchas Cercanas</span
+                        >Ver Torneos</span
                     >
                 </button>
             </div>
