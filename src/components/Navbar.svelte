@@ -1,138 +1,216 @@
 <script>
+    import { obtenerUsuarioActual } from "../lib/api.js";
+
     export let activePage = "home";
     export let onNavigate = () => {};
 
+    const usuario = obtenerUsuarioActual();
+
+    let sidebarAbierta = false;
     let showLogoutModal = false;
 
+    function irA(pagina, opciones = {}) {
+        sidebarAbierta = false;
+        onNavigate(pagina, opciones);
+    }
+
     function handleLogout() {
-        // Limpiamos tokens de almacenamiento
         localStorage.removeItem("playtime_token");
+        localStorage.removeItem("playtime_user");
         sessionStorage.removeItem("playtime_token");
+        sessionStorage.removeItem("playtime_user");
+        sessionStorage.removeItem("playtime_redirect");
         showLogoutModal = false;
-        onNavigate("welcome");
+        onNavigate("login");
     }
 </script>
 
-<!-- Barra de Navegación Inferior Fija (Mobile-first) -->
-<nav
-    class="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg"
-    aria-label="Navegación principal"
+<!-- Topbar móvil (< 992px) -->
+<div class="pt-topbar-mobile">
+    <div class="flex items-center gap-3">
+        <button
+            type="button"
+            class="pt-topbar-btn"
+            onclick={() => (sidebarAbierta = !sidebarAbierta)}
+            aria-label={sidebarAbierta
+                ? "Cerrar menú de navegación"
+                : "Abrir menú de navegación"}
+            aria-expanded={sidebarAbierta}
+        >
+            <i
+                class="bi {sidebarAbierta ? 'bi-x-lg' : 'bi-list'} text-xl"
+                aria-hidden="true"
+            ></i>
+        </button>
+        <div class="flex items-center gap-2 font-extrabold tracking-wide">
+            <span aria-hidden="true">⚽</span>
+            <span>PlayTime</span>
+        </div>
+    </div>
+
+    <div class="pt-user-avatar text-sm" title={usuario.nombre}>
+        {usuario.inicial}
+    </div>
+</div>
+
+<!-- Backdrop oscuro en móvil cuando la sidebar está abierta -->
+{#if sidebarAbierta}
+    <button
+        type="button"
+        aria-label="Cerrar menú lateral"
+        onclick={() => (sidebarAbierta = false)}
+        class="fixed inset-0 bg-black/40 z-[1035] lg:hidden border-0"
+    ></button>
+{/if}
+
+<!-- SIDEBAR FIJA DE 260PX (App Shell Web) -->
+<aside
+    class="pt-sidebar {sidebarAbierta ? 'open' : ''}"
+    aria-label="Menú lateral principal"
 >
-    <div class="max-w-md mx-auto px-4 flex justify-between items-center h-16">
-        <!-- Inicio -->
+    <button
+        type="button"
+        onclick={() => irA("home")}
+        class="pt-brand bg-transparent border-0 text-left cursor-pointer"
+    >
+        <div class="pt-brand-logo" aria-hidden="true">⚽</div>
+        <div>
+            <div class="pt-brand-name">PlayTime</div>
+            <div class="pt-brand-sub">Reservas y Comunidad</div>
+        </div>
+    </button>
+
+    <div class="pt-nav-label">Menú Principal</div>
+    <nav class="pt-nav" aria-label="Secciones de PlayTime">
         <button
             type="button"
-            onclick={() => onNavigate("home")}
-            class="flex flex-col items-center justify-center flex-1 py-1 transition {activePage ===
-            'home'
-                ? 'text-blue-600 font-bold'
-                : 'text-slate-500 hover:text-slate-700'}"
+            onclick={() => irA("home")}
+            class="pt-nav-item {activePage === 'home' ? 'active' : ''}"
         >
-            <i
-                class="bi {activePage === 'home'
-                    ? 'bi-house-door-fill'
-                    : 'bi-house-door'} text-xl"
-            ></i>
-            <span class="text-[11px] mt-0.5">Inicio</span>
+            <i class="bi bi-house-door-fill" aria-hidden="true"></i>
+            <span>Inicio</span>
         </button>
 
-        <!-- Torneos -->
         <button
             type="button"
-            onclick={() => onNavigate("torneos")}
-            class="flex flex-col items-center justify-center flex-1 py-1 transition {activePage ===
-            'torneos'
-                ? 'text-blue-600 font-bold'
-                : 'text-slate-500 hover:text-slate-700'}"
+            onclick={() => irA("comunidad", { tab: "explorar" })}
+            class="pt-nav-item {activePage === 'comunidad' ? 'active' : ''}"
         >
-            <i
-                class="bi {activePage === 'torneos'
-                    ? 'bi-trophy-fill'
-                    : 'bi-trophy'} text-xl"
-            ></i>
-            <span class="text-[11px] mt-0.5">Torneos</span>
+            <i class="bi bi-people-fill" aria-hidden="true"></i>
+            <span>Partidos y Equipos</span>
         </button>
 
-        <!-- Reservas -->
         <button
             type="button"
-            onclick={() => onNavigate("reservas")}
-            class="flex flex-col items-center justify-center flex-1 py-1 transition {activePage ===
-            'reservas'
-                ? 'text-blue-600 font-bold'
-                : 'text-slate-500 hover:text-slate-700'}"
+            onclick={() => irA("reservas")}
+            class="pt-nav-item {activePage === 'reservas' ? 'active' : ''}"
         >
-            <i
-                class="bi {activePage === 'reservas'
-                    ? 'bi-calendar-check-fill'
-                    : 'bi-calendar-check'} text-xl"
-            ></i>
-            <span class="text-[11px] mt-0.5">Reservas</span>
+            <i class="bi bi-calendar-check-fill" aria-hidden="true"></i>
+            <span>Mis Reservas</span>
         </button>
 
-        <!-- Comunidad -->
         <button
             type="button"
-            onclick={() => onNavigate("comunidad")}
-            class="flex flex-col items-center justify-center flex-1 py-1 transition {activePage ===
-            'comunidad'
-                ? 'text-blue-600 font-bold'
-                : 'text-slate-500 hover:text-slate-700'}"
+            onclick={() => irA("torneos")}
+            class="pt-nav-item {activePage === 'torneos' ? 'active' : ''}"
         >
-            <i
-                class="bi {activePage === 'comunidad'
-                    ? 'bi-people-fill'
-                    : 'bi-people'} text-xl"
-            ></i>
-            <span class="text-[11px] mt-0.5">Comunidad</span>
+            <i class="bi bi-trophy-fill" aria-hidden="true"></i>
+            <span>Torneos</span>
+        </button>
+    </nav>
+
+    <div class="pt-nav-label">Social</div>
+    <nav class="pt-nav" aria-label="Accesos rápidos sociales">
+        <button
+            type="button"
+            onclick={() => irA("comunidad", { tab: "mios", abrirCrear: true })}
+            class="pt-nav-item"
+        >
+            <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
+            <span>Organizar Partido</span>
         </button>
 
-        <!-- Salir (Abre Modal) -->
+        <button
+            type="button"
+            onclick={() => irA("comunidad", { tab: "amigos" })}
+            class="pt-nav-item"
+        >
+            <i class="bi bi-person-hearts" aria-hidden="true"></i>
+            <span>Mis Amigos</span>
+        </button>
+    </nav>
+
+    <!-- Footer con datos reales del usuario logueado -->
+    <div class="pt-sidebar-footer">
+        <div class="pt-user mb-2">
+            <div class="pt-user-avatar">{usuario.inicial}</div>
+            <div class="overflow-hidden">
+                <div class="pt-user-name truncate">
+                    {usuario.nombre}
+                    {usuario.apellido || ""}
+                </div>
+                {#if usuario.email}
+                    <div class="pt-user-mail truncate">{usuario.email}</div>
+                {/if}
+            </div>
+        </div>
+
         <button
             type="button"
             onclick={() => (showLogoutModal = true)}
-            class="flex flex-col items-center justify-center flex-1 py-1 text-slate-500 hover:text-red-600 transition"
-            aria-label="Cerrar sesión"
+            class="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer border border-white/20"
         >
-            <i class="bi bi-box-arrow-right text-xl"></i>
-            <span class="text-[11px] mt-0.5">Salir</span>
+            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+            <span>Cerrar sesión</span>
         </button>
     </div>
-</nav>
+</aside>
 
-<!-- Modal de Confirmación de Logout -->
+<!-- Modal de Confirmación de Logout (según sección #modales del Design System) -->
 {#if showLogoutModal}
     <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-fade-in"
+        class="fixed inset-0 z-[1050] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="logout-modal-title"
     >
         <div
-            class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-slate-800 animate-scale-up"
+            class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-slate-800"
         >
-            <div class="flex items-center gap-3 text-amber-500 mb-3">
-                <i class="bi bi-exclamation-circle-fill text-2xl"></i>
-                <h2 class="text-lg font-bold text-slate-900">Cerrar Sesión</h2>
+            <div class="flex items-center gap-2.5 mb-3">
+                <i
+                    class="bi bi-exclamation-triangle-fill text-amber-500 text-xl"
+                    aria-hidden="true"
+                ></i>
+                <h2
+                    id="logout-modal-title"
+                    class="text-lg font-bold text-slate-900"
+                >
+                    Cerrar Sesión
+                </h2>
             </div>
 
             <p class="text-sm text-slate-600 mb-6">
-                ¿Estás seguro de que deseás cerrar tu sesión en PlayTime?
+                ¿Estás seguro de que querés cerrar tu sesión en <strong
+                    >PlayTime</strong
+                >?
             </p>
 
-            <div class="flex gap-3 justify-end">
+            <div class="flex gap-2.5 justify-end">
                 <button
                     type="button"
                     onclick={() => (showLogoutModal = false)}
-                    class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                    class="btn-pt btn-pt-outline btn-pt-sm"
                 >
                     Cancelar
                 </button>
                 <button
                     type="button"
                     onclick={handleLogout}
-                    class="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow transition cursor-pointer"
+                    class="btn-pt btn-pt-danger-soft btn-pt-sm"
                 >
-                    Cerrar Sesión
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span>Sí, salir</span>
                 </button>
             </div>
         </div>

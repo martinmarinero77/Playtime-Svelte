@@ -1,109 +1,134 @@
 <script>
     import Navbar from "../components/Navbar.svelte";
-    import { obtenerUsuarioActual } from "../lib/api.js";
+    import { obtenerUsuarioActual, eventosApi } from "../lib/api.js";
 
-    export let onNavigate = () => {};
+    let { onNavigate = () => {} } = $props();
 
     const usuario = obtenerUsuarioActual();
 
-    let searchTerm = "";
+    let searchTerm = $state("");
+    let misProximosPartidos = $state([]);
+    let cargandoPartidos = $state(true);
 
-    // Datos de ejemplo para renderizar los complejos (luego conectaremos a GET /api/Complejo)
-    let complejos = [
+    const complejos = [
         {
             id: 1,
             nombre: "Complejo El Monumental",
             direccion: "Av. Libertador 450, San Juan",
+            telefono: "+54 264 412-3456",
             deportes: ["Fútbol 5", "Fútbol 7", "Pádel"],
-            color: "from-emerald-500 to-teal-600",
+            gradiente: "linear-gradient(135deg, #34d399, #10b981)",
         },
         {
             id: 2,
             nombre: "Canchas La Redonda",
-            direccion: "Calle Mendoza 1250 Sur",
-            deportes: ["Fútbol 5"],
-            color: "from-blue-500 to-indigo-600",
+            direccion: "Calle Mendoza 1250 Sur, San Juan",
+            telefono: "+54 264 498-7654",
+            deportes: ["Fútbol 5", "Fútbol 8"],
+            gradiente: "linear-gradient(135deg, #60a5fa, #3b82f6)",
         },
         {
             id: 3,
             nombre: "Pádel & Fútbol Center",
-            direccion: "Ruta 40 km 8",
-            deportes: ["Pádel", "Fútbol 8"],
-            color: "from-amber-500 to-orange-600",
+            direccion: "Ruta 40 km 8, Pocito",
+            telefono: "+54 264 511-2233",
+            deportes: ["Pádel", "Tenis", "Fútbol 7"],
+            gradiente: "linear-gradient(135deg, #fb923c, #ea580c)",
         },
     ];
+
+    let complejosFiltrados = $derived(
+        searchTerm.trim() === ""
+            ? complejos
+            : complejos.filter(
+                  (c) =>
+                      c.nombre
+                          .toLowerCase()
+                          .includes(searchTerm.toLowerCase()) ||
+                      c.direccion
+                          .toLowerCase()
+                          .includes(searchTerm.toLowerCase()) ||
+                      c.deportes.some((d) =>
+                          d.toLowerCase().includes(searchTerm.toLowerCase()),
+                      ),
+              ),
+    );
+
+    $effect(() => {
+        const controller = new AbortController();
+        cargandoPartidos = true;
+
+        eventosApi
+            .listarMios(controller.signal)
+            .then((res) => {
+                misProximosPartidos = (res.data || []).slice(0, 2);
+            })
+            .catch(() => {
+                misProximosPartidos = [];
+            })
+            .finally(() => {
+                cargandoPartidos = false;
+            });
+
+        return () => controller.abort();
+    });
+
+    function formatearFecha(iso) {
+        if (!iso) return "";
+        return new Date(iso).toLocaleString("es-AR", {
+            weekday: "long",
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    }
 </script>
 
-<div class="min-h-screen bg-slate-100 pb-24 text-slate-800">
-    <!-- CABECERA PRINCIPAL (Con saludo y buscador) -->
-    <header
-        class="bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 text-white pt-6 pb-8 px-4 rounded-b-3xl shadow-lg"
-    >
-        <div class="max-w-md mx-auto">
-            <!-- Fila superior: Logo/Título y Avatar -->
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <span
-                        class="text-xs uppercase tracking-wider text-blue-200 font-bold"
-                        >PlayTime</span
-                    >
-                    <h1
-                        class="text-xl sm:text-2xl font-extrabold flex items-center gap-1.5"
-                    >
-                        <span>¡Hola, {usuario.nombre}!</span>
-                        <span>⚽</span>
-                    </h1>
-                </div>
+<Navbar activePage="home" {onNavigate} />
 
-                <!-- Avatar circular -->
-                <div
-                    class="w-11 h-11 rounded-full bg-blue-500/50 border border-white/20 flex items-center justify-center font-bold text-lg shadow"
+<div class="pt-main">
+    <main class="pt-content space-y-8">
+        <!-- PAGE HEADER (según sección #layout del Design System) -->
+        <header class="pt-page-header">
+            <div>
+                <p
+                    class="text-xs uppercase tracking-wider text-blue-100 font-bold mb-1"
                 >
-                    {usuario.inicial}
-                </div>
+                    Panel Principal
+                </p>
+                <h1
+                    class="text-2xl sm:text-3xl font-extrabold flex items-center gap-2"
+                >
+                    <span>¡Hola, {usuario.nombre}!</span>
+                    <span aria-hidden="true">⚽</span>
+                </h1>
+                <p
+                    class="text-sm text-blue-100/90 mt-1 flex items-center gap-1.5"
+                >
+                    <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+                    <span>{usuario.localidad || "San Juan, Argentina"}</span>
+                </p>
             </div>
 
-            <!-- Barra de Búsqueda -->
-            <div class="relative flex items-center mb-2">
-                <span
-                    class="absolute left-3.5 text-blue-500 pointer-events-none"
-                    aria-hidden="true"
-                >
-                    <i class="bi bi-search"></i>
-                </span>
-                <input
-                    type="text"
-                    bind:value={searchTerm}
-                    placeholder="Buscar canchas, deportes o complejos..."
-                    class="w-full pl-10 pr-10 py-3 bg-white text-slate-800 placeholder-slate-400 rounded-2xl shadow-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                />
-                <span
-                    class="absolute right-3.5 text-slate-400 pointer-events-none"
-                    aria-hidden="true"
-                >
-                    <i class="bi bi-sliders"></i>
-                </span>
+            <div class="icon-box" aria-hidden="true">
+                <i class="bi bi-calendar-check-fill"></i>
             </div>
+        </header>
 
-            <!-- Ubicación actual -->
-            <div
-                class="flex items-center gap-1.5 text-xs text-blue-200/90 pl-1"
-            >
-                <i class="bi bi-geo-alt-fill"></i>
-                <span>San Juan, Argentina</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="max-w-md mx-auto px-4 py-6 space-y-6">
-        <!-- SECCIÓN: ACCIONES RÁPIDAS -->
+        <!-- ACCIONES RÁPIDAS (Orden pedido: 1. Organizar, 2. Reservar, 3. Públicos, 4. Torneos) -->
         <section aria-label="Acciones rápidas">
-            <h2 class="text-base font-bold text-slate-900 mb-3">
-                Acciones Rápidas
+            <h2
+                class="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2"
+            >
+                <i
+                    class="bi bi-lightning-charge-fill text-blue-600"
+                    aria-hidden="true"
+                ></i>
+                <span>Acciones Rápidas</span>
             </h2>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- 1. Organizar Partido -->
                 <button
                     type="button"
@@ -112,147 +137,340 @@
                             tab: "mios",
                             abrirCrear: true,
                         })}
-                    class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex flex-col items-center text-center cursor-pointer"
+                    class="stat-card hoverable cursor-pointer text-center"
                 >
                     <div
-                        class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-2"
+                        class="stat-icon"
+                        style="background: rgba(16, 185, 129, 0.12); color: var(--pt-green);"
                     >
                         <i class="bi bi-plus-circle-fill" aria-hidden="true"
                         ></i>
                     </div>
-                    <span class="text-xs font-semibold text-slate-700"
-                        >Organizar Partido</span
-                    >
+                    <div class="font-bold text-slate-800 text-sm">
+                        Organizar Partido
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Creá un evento y armá equipos
+                    </p>
                 </button>
 
                 <!-- 2. Reservar Cancha -->
                 <button
                     type="button"
                     onclick={() => onNavigate("reservas")}
-                    class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex flex-col items-center text-center cursor-pointer"
+                    class="stat-card hoverable cursor-pointer text-center"
                 >
                     <div
-                        class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl mb-2"
+                        class="stat-icon"
+                        style="background: rgba(59, 130, 246, 0.12); color: var(--pt-blue);"
                     >
                         <i class="bi bi-calendar-check-fill" aria-hidden="true"
                         ></i>
                     </div>
-                    <span class="text-xs font-semibold text-slate-700"
-                        >Reservar Cancha</span
-                    >
+                    <div class="font-bold text-slate-800 text-sm">
+                        Reservar Cancha
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Buscá horarios disponibles
+                    </p>
                 </button>
 
                 <!-- 3. Ver Partidos Públicos -->
                 <button
                     type="button"
                     onclick={() => onNavigate("comunidad", { tab: "explorar" })}
-                    class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex flex-col items-center text-center cursor-pointer"
+                    class="stat-card hoverable cursor-pointer text-center"
                 >
                     <div
-                        class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl mb-2"
+                        class="stat-icon"
+                        style="background: rgba(139, 92, 246, 0.12); color: var(--pt-purple);"
                     >
                         <i class="bi bi-people-fill" aria-hidden="true"></i>
                     </div>
-                    <span class="text-xs font-semibold text-slate-700"
-                        >Ver Partidos Públicos</span
-                    >
+                    <div class="font-bold text-slate-800 text-sm">
+                        Ver Partidos Públicos
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Sumate a partidos abiertos
+                    </p>
                 </button>
 
                 <!-- 4. Ver Torneos -->
                 <button
                     type="button"
                     onclick={() => onNavigate("torneos")}
-                    class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex flex-col items-center text-center cursor-pointer"
+                    class="stat-card hoverable cursor-pointer text-center"
                 >
                     <div
-                        class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl mb-2"
+                        class="stat-icon"
+                        style="background: rgba(245, 158, 11, 0.12); color: var(--pt-amber);"
                     >
                         <i class="bi bi-trophy-fill" aria-hidden="true"></i>
                     </div>
-                    <span class="text-xs font-semibold text-slate-700"
-                        >Ver Torneos</span
-                    >
+                    <div class="font-bold text-slate-800 text-sm">
+                        Ver Torneos
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Competencias y fixture
+                    </p>
                 </button>
             </div>
         </section>
 
-        <!-- SECCIÓN: PRÓXIMOS PARTIDOS -->
+        <!-- PRÓXIMOS PARTIDOS (Conectado a tus Eventos en Firestore) -->
         <section aria-label="Próximos partidos">
-            <h2 class="text-base font-bold text-slate-900 mb-3">
-                Próximos Partidos
-            </h2>
-
-            <!-- Aviso de sin reservas activas (como en home.jsp) -->
-            <div
-                class="bg-white rounded-2xl border border-dashed border-slate-300 p-5 text-center"
-            >
-                <p class="text-sm text-slate-500 mb-2">
-                    No tenés próximos partidos programados.
-                </p>
-                <button
-                    type="button"
-                    onclick={() => onNavigate("reservas")}
-                    class="text-blue-600 hover:text-blue-800 text-sm font-bold hover:underline cursor-pointer"
-                >
-                    ¡Reservá tu cancha ahora! ➔
-                </button>
-            </div>
-        </section>
-
-        <!-- SECCIÓN: COMPLEJOS DESTACADOS -->
-        <section aria-label="Complejos destacados">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="text-base font-bold text-slate-900">
-                    Complejos Destacados
+                <h2
+                    class="text-lg font-bold text-slate-800 flex items-center gap-2"
+                >
+                    <i
+                        class="bi bi-calendar-event-fill text-blue-600"
+                        aria-hidden="true"
+                    ></i>
+                    <span>Mis Próximos Partidos</span>
                 </h2>
                 <button
                     type="button"
-                    class="text-xs font-semibold text-blue-600 hover:underline"
-                    >Ver todos</button
+                    onclick={() => onNavigate("comunidad", { tab: "mios" })}
+                    class="btn-pt btn-pt-soft btn-pt-sm"
                 >
+                    <span>Ver todos</span>
+                    <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </button>
             </div>
 
-            <div class="space-y-3">
-                {#each complejos as comp}
-                    <article
-                        class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md transition"
-                    >
-                        <div
-                            class="bg-gradient-to-r {comp.color} p-3.5 text-white flex items-center gap-3"
+            {#if cargandoPartidos}
+                <div class="pt-card empty-state">
+                    <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                    <p class="font-bold text-slate-700">
+                        Cargando tus partidos...
+                    </p>
+                </div>
+            {:else if misProximosPartidos.length === 0}
+                <div class="pt-card empty-state">
+                    <i class="bi bi-calendar-x" aria-hidden="true"></i>
+                    <h3 class="font-bold text-slate-800 text-base">
+                        No tenés próximos partidos programados
+                    </h3>
+                    <p class="text-sm text-slate-500 mt-1 mb-4">
+                        Organizá un partido con tus amigos o sumate a uno
+                        público de la comunidad.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button
+                            type="button"
+                            onclick={() =>
+                                onNavigate("comunidad", {
+                                    tab: "mios",
+                                    abrirCrear: true,
+                                })}
+                            class="btn-pt btn-pt-success btn-pt-sm"
                         >
+                            <i class="bi bi-plus-circle-fill" aria-hidden="true"
+                            ></i>
+                            <span>Organizar Partido</span>
+                        </button>
+                        <button
+                            type="button"
+                            onclick={() =>
+                                onNavigate("comunidad", { tab: "explorar" })}
+                            class="btn-pt btn-pt-soft btn-pt-sm"
+                        >
+                            <i class="bi bi-people-fill" aria-hidden="true"></i>
+                            <span>Explorar Partidos Públicos</span>
+                        </button>
+                    </div>
+                </div>
+            {:else}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {#each misProximosPartidos as ev (ev.id)}
+                        <article class="pt-card">
                             <div
-                                class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg"
+                                class="pt-card-header-green flex items-center justify-between gap-3"
                             >
-                                <i class="bi bi-building"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-sm leading-snug">
-                                    {comp.nombre}
-                                </h3>
-                                <p class="text-white/80 text-xs">
-                                    {comp.direccion}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 flex items-center justify-between">
-                            <div class="flex gap-1.5 flex-wrap">
-                                {#each comp.deportes as dep}
-                                    <span
-                                        class="bg-blue-50 text-blue-700 text-[11px] font-semibold px-2.5 py-1 rounded-lg"
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-11 h-11 rounded-full bg-white/25 flex items-center justify-center text-lg shrink-0"
+                                        aria-hidden="true"
                                     >
-                                        {dep}
-                                    </span>
-                                {/each}
+                                        <i class="bi bi-trophy-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h3
+                                            class="font-bold text-base leading-tight"
+                                        >
+                                            {ev.titulo}
+                                        </h3>
+                                        <p class="text-xs opacity-90">
+                                            {ev.deporte} · {ev.ubicacionTexto ||
+                                                "Lugar a definir"}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span
+                                    class="text-xs font-bold px-2.5 py-1 rounded-full bg-white/25 shrink-0"
+                                >
+                                    {ev.cantConfirmados}/{ev.cupoMaximo} jug.
+                                </span>
                             </div>
-                            <i class="bi bi-chevron-right text-slate-400"></i>
-                        </div>
-                    </article>
-                {/each}
+
+                            <div
+                                class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                            >
+                                <div class="text-sm text-slate-700 space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <i
+                                            class="bi bi-calendar-event-fill text-blue-600"
+                                            aria-hidden="true"
+                                        ></i>
+                                        <strong class="capitalize"
+                                            >{formatearFecha(
+                                                ev.fechaHora,
+                                            )}</strong
+                                        >
+                                    </div>
+                                    <div class="text-xs text-slate-500">
+                                        Organiza: {ev.organizadorNombre}
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onclick={() =>
+                                        onNavigate("comunidad", {
+                                            tab: "mios",
+                                            eventoId: ev.id,
+                                        })}
+                                    class="btn-pt btn-pt-soft btn-pt-sm shrink-0"
+                                >
+                                    <i
+                                        class="bi bi-people-fill"
+                                        aria-hidden="true"
+                                    ></i>
+                                    <span>Armar Equipo</span>
+                                </button>
+                            </div>
+                        </article>
+                    {/each}
+                </div>
+            {/if}
+        </section>
+
+        <!-- COMPLEJOS DESTACADOS (según sección #cards del Design System) -->
+        <section aria-label="Complejos destacados">
+            <div
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4"
+            >
+                <h2
+                    class="text-lg font-bold text-slate-800 flex items-center gap-2"
+                >
+                    <i
+                        class="bi bi-buildings-fill text-blue-600"
+                        aria-hidden="true"
+                    ></i>
+                    <span>Complejos Destacados</span>
+                </h2>
+
+                <!-- Buscador de complejos -->
+                <div class="relative w-full sm:w-72">
+                    <label for="buscar-complejo" class="sr-only">
+                        Buscar complejos o deportes
+                    </label>
+                    <i
+                        class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-600 pointer-events-none"
+                        aria-hidden="true"
+                    ></i>
+                    <input
+                        id="buscar-complejo"
+                        type="text"
+                        bind:value={searchTerm}
+                        placeholder="Filtrar por nombre o deporte..."
+                        class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
             </div>
+
+            {#if complejosFiltrados.length === 0}
+                <div class="pt-card empty-state">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <h3 class="font-bold text-slate-800">Sin resultados</h3>
+                    <p class="text-sm text-slate-500 mt-1 mb-3">
+                        No encontramos complejos que coincidan con "{searchTerm}".
+                    </p>
+                    <button
+                        type="button"
+                        onclick={() => (searchTerm = "")}
+                        class="btn-pt btn-pt-outline btn-pt-sm"
+                    >
+                        Limpiar filtro
+                    </button>
+                </div>
+            {:else}
+                <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
+                    {#each complejosFiltrados as comp (comp.id)}
+                        <article
+                            class="pt-card hoverable p-4 flex flex-col justify-between"
+                        >
+                            <div>
+                                <div class="flex items-start gap-3 mb-3">
+                                    <div
+                                        class="w-13 h-13 rounded-xl text-white flex items-center justify-center text-2xl shrink-0"
+                                        style="background: {comp.gradiente}"
+                                        aria-hidden="true"
+                                    >
+                                        <i class="bi bi-buildings-fill"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3
+                                            class="font-bold text-slate-900 text-base leading-snug"
+                                        >
+                                            {comp.nombre}
+                                        </h3>
+                                        <p
+                                            class="text-xs text-slate-500 mt-1 flex items-center gap-1.5"
+                                        >
+                                            <i
+                                                class="bi bi-geo-alt-fill text-red-500"
+                                                aria-hidden="true"
+                                            ></i>
+                                            <span class="truncate"
+                                                >{comp.direccion}</span
+                                            >
+                                        </p>
+                                        <p
+                                            class="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5"
+                                        >
+                                            <i
+                                                class="bi bi-telephone-fill text-emerald-600"
+                                                aria-hidden="true"
+                                            ></i>
+                                            <span>{comp.telefono}</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-wrap gap-1.5 mb-4">
+                                    {#each comp.deportes as dep (dep)}
+                                        <span class="sport-tag">{dep}</span>
+                                    {/each}
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onclick={() => onNavigate("reservas")}
+                                class="btn-pt btn-pt-soft w-full"
+                            >
+                                <i class="bi bi-eye-fill" aria-hidden="true"
+                                ></i>
+                                <span>Ver canchas disponibles</span>
+                            </button>
+                        </article>
+                    {/each}
+                </div>
+            {/if}
         </section>
     </main>
-
-    <!-- Barra de navegación inferior activa en 'home' -->
-    <Navbar activePage="home" {onNavigate} />
 </div>

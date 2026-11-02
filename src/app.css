@@ -1,1 +1,594 @@
 @import "tailwindcss";
+
+/* =====================================================
+   PLAYTIME DESIGN TOKENS (C-08)
+   ===================================================== */
+:root {
+    /* Marca */
+    --pt-blue: #2563eb;
+    --pt-blue-dark: #1e40af;
+    --pt-blue-navy: #1e3a8a;
+    --pt-blue-light: #3b82f6;
+    --pt-blue-50: #eff6ff;
+
+    /* Semánticos */
+    --pt-green: #10b981;
+    --pt-green-dark: #059669;
+    --pt-amber: #f59e0b;
+    --pt-red: #ef4444;
+    --pt-red-dark: #dc2626;
+    --pt-purple: #8b5cf6;
+    --pt-orange: #ea580c;
+
+    /* Neutros */
+    --pt-gray-50: #f9fafb;
+    --pt-gray-100: #f3f4f6;
+    --pt-gray-200: #e5e7eb;
+    --pt-gray-300: #d1d5db;
+    --pt-gray-500: #6b7280;
+    --pt-gray-700: #374151;
+    --pt-gray-800: #1f2937;
+
+    /* Radios */
+    --pt-radius-sm: 8px;
+    --pt-radius-md: 12px;
+    --pt-radius-lg: 16px;
+    --pt-radius-xl: 24px;
+
+    /* Sombras */
+    --pt-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --pt-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --pt-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --pt-shadow-brand: 0 8px 20px rgba(37, 99, 235, 0.3);
+
+    /* Layout */
+    --pt-sidebar-width: 260px;
+}
+
+body {
+    background-color: var(--pt-gray-50);
+    color: var(--pt-gray-800);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* C-19 / C-20: Foco visible accesible con el color de marca */
+:focus-visible {
+    outline: 2px solid var(--pt-blue);
+    outline-offset: 2px;
+}
+
+/* =====================================================
+   APP SHELL & SIDEBAR (260px)
+   ===================================================== */
+.pt-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--pt-sidebar-width);
+    background: linear-gradient(180deg, var(--pt-blue) 0%, var(--pt-blue-dark) 60%, var(--pt-blue-navy) 100%);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    z-index: 1040;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+.pt-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem 1.25rem 1rem;
+    text-decoration: none;
+    color: #fff;
+}
+
+.pt-brand-logo {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.pt-brand-name {
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+}
+
+.pt-brand-sub {
+    font-size: 0.75rem;
+    opacity: 0.75;
+}
+
+.pt-nav-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    padding: 1.25rem 1.5rem 0.5rem;
+    font-weight: 600;
+}
+
+.pt-nav {
+    padding: 0 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pt-nav-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: var(--pt-radius-md);
+    color: rgba(255, 255, 255, 0.85);
+    background: transparent;
+    border: 0;
+    text-align: left;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pt-nav-item i {
+    font-size: 1.1rem;
+    width: 1.25rem;
+    text-align: center;
+}
+
+.pt-nav-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.pt-nav-item.active {
+    background: #fff;
+    color: var(--pt-blue);
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.pt-sidebar-footer {
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.pt-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: var(--pt-radius-md);
+}
+
+.pt-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.pt-user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.pt-user-mail {
+    font-size: 0.75rem;
+    opacity: 0.75;
+}
+
+.pt-main {
+    margin-left: var(--pt-sidebar-width);
+    min-height: 100vh;
+    background-color: var(--pt-gray-50);
+    color: var(--pt-gray-800);
+}
+
+.pt-content {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.pt-topbar-mobile {
+    display: none;
+    background: linear-gradient(90deg, var(--pt-blue), var(--pt-blue-dark));
+    color: #fff;
+    padding: 0.75rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+.pt-topbar-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 0;
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.pt-page-header {
+    background: linear-gradient(90deg, var(--pt-blue), var(--pt-blue-dark));
+    color: #fff;
+    border-radius: var(--pt-radius-lg);
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    box-shadow: var(--pt-shadow-md);
+}
+
+.pt-page-header .icon-box {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--pt-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   COMPONENTES PLAYTIME (Botones, Cards, Badges, Chips)
+   ===================================================== */
+.btn-pt {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: var(--pt-radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.65rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-pt-sm {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8125rem;
+    border-radius: var(--pt-radius-sm);
+}
+
+.btn-pt-primary {
+    background: linear-gradient(135deg, var(--pt-blue) 0%, var(--pt-blue-dark) 100%);
+    color: #fff;
+    border: 0;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-pt-primary:hover:not(:disabled) {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+}
+
+.btn-pt-success {
+    background: linear-gradient(135deg, var(--pt-green) 0%, var(--pt-green-dark) 100%);
+    color: #fff;
+    border: 0;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-pt-success:hover:not(:disabled) {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-pt-soft {
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--pt-blue);
+    border: 0;
+}
+
+.btn-pt-soft:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.15);
+    color: var(--pt-blue-dark);
+}
+
+.btn-pt-danger-soft {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--pt-red-dark);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-pt-danger-soft:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--pt-red-dark);
+}
+
+.btn-pt-outline {
+    background: #fff;
+    color: var(--pt-gray-700);
+    border: 1.5px solid var(--pt-gray-200);
+}
+
+.btn-pt-outline:hover:not(:disabled) {
+    border-color: var(--pt-blue);
+    color: var(--pt-blue);
+    background: var(--pt-blue-50);
+}
+
+.btn-pt:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Filter chips */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 6px 16px;
+    border-radius: 16px;
+    background: var(--pt-gray-100);
+    color: var(--pt-gray-700);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid var(--pt-gray-200);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-chip:hover {
+    background: var(--pt-gray-200);
+}
+
+.filter-chip.active {
+    background: var(--pt-blue);
+    border-color: var(--pt-blue);
+    color: #fff;
+}
+
+/* Cards */
+.pt-card {
+    background: #fff;
+    border: 1px solid var(--pt-gray-200);
+    border-radius: var(--pt-radius-lg);
+    box-shadow: var(--pt-shadow-sm);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pt-card.hoverable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--pt-shadow-lg);
+}
+
+.pt-card-header-green {
+    background: linear-gradient(135deg, #34d399, #10b981);
+    color: #fff;
+    padding: 0.9rem 1.25rem;
+}
+
+.pt-card-header-blue {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    color: #fff;
+    padding: 0.9rem 1.25rem;
+}
+
+.pt-card-header-dark {
+    background: linear-gradient(135deg, #4b5563, #1f2937);
+    color: #fff;
+    padding: 0.9rem 1.25rem;
+}
+
+.pt-card-header-orange {
+    background: linear-gradient(135deg, #fb923c, #ea580c);
+    color: #fff;
+    padding: 0.9rem 1.25rem;
+}
+
+/* Stat card */
+.stat-card {
+    background: #fff;
+    border-radius: var(--pt-radius-lg);
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: var(--pt-shadow-sm);
+    border: 1px solid var(--pt-gray-200);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card.hoverable:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--pt-shadow-lg);
+}
+
+.stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.4rem;
+}
+
+/* Jugador */
+.player-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: var(--pt-gray-50);
+    border: 1px solid var(--pt-gray-200);
+    border-radius: var(--pt-radius-md);
+    padding: 0.75rem 1rem;
+    transition: all 0.2s;
+}
+
+.player-card:hover {
+    box-shadow: var(--pt-shadow-md);
+    transform: translateY(-1px);
+}
+
+.player-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+/* Badges y Deportes */
+.sport-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 4px 12px;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--pt-blue-dark);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 16px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-accepted {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Alertas */
+.pt-alert {
+    border: 0;
+    border-radius: var(--pt-radius-md);
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.pt-alert-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.pt-alert-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.pt-alert-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.pt-alert-info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1.25rem;
+}
+
+.empty-state>i {
+    font-size: 3rem;
+    color: var(--pt-gray-300);
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+/* =====================================================
+   RESPONSIVE (< 992px: Sidebar colapsable + Topbar)
+   ===================================================== */
+@media (max-width: 991.98px) {
+    .pt-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .pt-sidebar.open {
+        transform: translateX(0);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .pt-main {
+        margin-left: 0;
+    }
+
+    .pt-topbar-mobile {
+        display: flex;
+    }
+}
+
+/* C-21 / C-23: Respetar prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

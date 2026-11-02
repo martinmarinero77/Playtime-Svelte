@@ -8,6 +8,30 @@ export function obtenerToken() {
     );
 }
 
+export function tieneSesionActiva() {
+    const token = obtenerToken();
+    if (!token) return false;
+
+    try {
+        // Un JWT tiene 3 partes separadas por punto: header.payload.signature
+        const payloadBase64 = token.split(".")[1];
+        if (!payloadBase64) return true;
+
+        const payload = JSON.parse(atob(payloadBase64));
+        if (payload.exp && Date.now() >= payload.exp * 1000) {
+            // Si el token expiró, limpiamos el almacenamiento
+            localStorage.removeItem("playtime_token");
+            localStorage.removeItem("playtime_user");
+            sessionStorage.removeItem("playtime_token");
+            sessionStorage.removeItem("playtime_user");
+            return false;
+        }
+        return true;
+    } catch {
+        return Boolean(token);
+    }
+}
+
 export function obtenerUsuarioActual() {
     const raw =
         localStorage.getItem("playtime_user") ||
