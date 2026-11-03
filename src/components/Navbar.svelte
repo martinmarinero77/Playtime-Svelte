@@ -93,11 +93,14 @@
 
         <button
             type="button"
-            onclick={() => irA("comunidad", { tab: "explorar" })}
-            class="pt-nav-item {activePage === 'comunidad' ? 'active' : ''}"
+            onclick={() => irA("partidos")}
+            class="pt-nav-item {activePage === 'partidos' ||
+            activePage === 'comunidad'
+                ? 'active'
+                : ''}"
         >
             <i class="bi bi-people-fill" aria-hidden="true"></i>
-            <span>Partidos y Equipos</span>
+            <span>Partidos</span>
         </button>
 
         <button
@@ -123,8 +126,10 @@
     <nav class="pt-nav" aria-label="Accesos rápidos sociales">
         <button
             type="button"
-            onclick={() => irA("comunidad", { tab: "mios", abrirCrear: true })}
-            class="pt-nav-item"
+            onclick={() => irA("organizar-partido")}
+            class="pt-nav-item {activePage === 'organizar-partido'
+                ? 'active'
+                : ''}"
         >
             <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
             <span>Organizar Partido</span>
@@ -132,8 +137,8 @@
 
         <button
             type="button"
-            onclick={() => irA("comunidad", { tab: "amigos" })}
-            class="pt-nav-item"
+            onclick={() => irA("amigos")}
+            class="pt-nav-item {activePage === 'amigos' ? 'active' : ''}"
         >
             <i class="bi bi-person-hearts" aria-hidden="true"></i>
             <span>Mis Amigos</span>

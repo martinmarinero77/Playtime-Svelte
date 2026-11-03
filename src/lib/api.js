@@ -90,26 +90,31 @@ export const eventosApi = {
             method: "POST",
             body: JSON.stringify(dto),
         }),
+    actualizar: (id, dto) =>
+        peticion(`/eventos/${id}`, {
+            method: "PUT",
+            body: JSON.stringify(dto),
+        }),
     cancelar: (id) =>
-        peticion(`/eventos/${id}/cancelar`, {
-            method: "POST",
+        peticion(`/eventos/${id}`, {
+            method: "DELETE",
         }),
     unirsePublico: (id) =>
         peticion(`/eventos/${id}/unirse`, {
             method: "POST",
         }),
     responderInvitacion: (id, aceptar) =>
-        peticion(`/eventos/${id}/invitaciones/responder`, {
+        peticion(`/eventos/${id}/respuesta`, {
             method: "POST",
             body: JSON.stringify({ aceptar }),
         }),
     invitarJugador: (id, payload) =>
-        peticion(`/eventos/${id}/invitar`, {
+        peticion(`/eventos/${id}/invitaciones`, {
             method: "POST",
             body: JSON.stringify(payload),
         }),
     resolverSolicitud: (id, solicitanteUid, aceptar) =>
-        peticion(`/eventos/${id}/solicitudes/${solicitanteUid}/resolver`, {
+        peticion(`/eventos/${id}/solicitudes/${solicitanteUid}`, {
             method: "POST",
             body: JSON.stringify({ aceptar }),
         }),
@@ -123,9 +128,21 @@ export const eventosApi = {
             method: "DELETE",
         }),
     abandonar: (id) =>
-        peticion(`/eventos/${id}/mi-participacion`, {
+        peticion(`/eventos/${id}/participantes/yo`, {
             method: "DELETE",
         }),
+    // Bolsa de Jugadores Disponibles
+    obtenerMiDisponibilidad: (signal) =>
+        peticion("/eventos/mi-disponibilidad", { signal }),
+    actualizarMiDisponibilidad: (dto) =>
+        peticion("/eventos/mi-disponibilidad", {
+            method: "PUT",
+            body: JSON.stringify(dto),
+        }),
+    listarJugadoresDisponibles: (deporte = "", signal) => {
+        const q = deporte ? `?deporte=${encodeURIComponent(deporte)}` : "";
+        return peticion(`/eventos/jugadores-disponibles${q}`, { signal });
+    },
 };
 
 // ==================== API DE AMISTADES ====================

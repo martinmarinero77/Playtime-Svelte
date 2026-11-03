@@ -3,9 +3,11 @@
   import Login from "./pages/Login.svelte";
   import Register from "./pages/Register.svelte";
   import Home from "./pages/Home.svelte";
-  import Comunidad from "./pages/Comunidad.svelte";
+  import Partidos from "./pages/Partidos.svelte";
   import OrganizarPartido from "./pages/OrganizarPartido.svelte";
+  import EditarPartido from "./pages/EditarPartido.svelte";
   import PartidoDetalle from "./pages/PartidoDetalle.svelte";
+  import Amigos from "./pages/Amigos.svelte";
   import { tieneSesionActiva } from "./lib/api.js";
 
   // Únicas rutas públicas sin sesión
@@ -34,15 +36,24 @@
     if (path === "/organizar-partido") {
       return { view: "organizar-partido", options: {} };
     }
+    if (path.startsWith("/partidos/") && path.endsWith("/editar")) {
+      const eventoId = decodeURIComponent(
+        path.slice("/partidos/".length, -"/editar".length),
+      );
+      return { view: "editar-partido", options: { eventoId } };
+    }
     if (path.startsWith("/partidos/")) {
       const eventoId = decodeURIComponent(path.slice("/partidos/".length));
       return { view: "partido-detalle", options: { eventoId } };
     }
-    if (path === "/comunidad") {
+    if (path === "/partidos" || path === "/comunidad") {
       return {
-        view: "comunidad",
-        options: { tab: params.get("tab") || "explorar" },
+        view: "partidos",
+        options: { tab: params.get("tab") || "mios" },
       };
+    }
+    if (path === "/amigos") {
+      return { view: "amigos", options: {} };
     }
 
     // Si escribe cualquier otra ruta privada (ej: /reservas, /torneos), se trata como ruta protegida
@@ -62,17 +73,22 @@
         return "/home";
       case "organizar-partido":
         return "/organizar-partido";
+      case "editar-partido":
+        return options.eventoId
+          ? `/partidos/${encodeURIComponent(options.eventoId)}/editar`
+          : "/partidos";
       case "partido-detalle":
         return options.eventoId
           ? `/partidos/${encodeURIComponent(options.eventoId)}`
-          : "/comunidad";
+          : "/partidos";
+      case "partidos":
       case "comunidad": {
         const tab =
-          options.tab && options.tab !== "explorar"
-            ? `?tab=${options.tab}`
-            : "";
-        return `/comunidad${tab}`;
+          options.tab && options.tab !== "mios" ? `?tab=${options.tab}` : "";
+        return `/partidos${tab}`;
       }
+      case "amigos":
+        return "/amigos";
       default:
         return "/home";
     }
@@ -196,17 +212,18 @@
     <Register onNavigate={navigate} />
   {:else if currentView === "home"}
     <Home onNavigate={navigate} />
-  {:else if currentView === "comunidad"}
-    <Comunidad
-      onNavigate={navigate}
-      initialTab={navOptions.tab || "explorar"}
-    />
+  {:else if currentView === "partidos" || currentView === "comunidad"}
+    <Partidos onNavigate={navigate} initialTab={navOptions.tab || "mios"} />
   {:else if currentView === "organizar-partido"}
     <OrganizarPartido onNavigate={navigate} />
+  {:else if currentView === "editar-partido"}
+    <EditarPartido onNavigate={navigate} eventoId={navOptions.eventoId || ""} />
   {:else if currentView === "partido-detalle"}
     <PartidoDetalle
       onNavigate={navigate}
       eventoId={navOptions.eventoId || ""}
     />
+  {:else if currentView === "amigos"}
+    <Amigos onNavigate={navigate} />
   {/if}
 </div>

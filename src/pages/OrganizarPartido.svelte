@@ -6,7 +6,8 @@
 
     let titulo = $state("");
     let deporte = $state("Fútbol 5");
-    let fechaHora = $state("");
+    let fecha = $state("");
+    let hora = $state("20:00");
     let ubicacionTexto = $state("");
     let cupoMaximo = $state(10);
     let visibilidad = $state("PUBLICO");
@@ -31,18 +32,19 @@
         e.preventDefault();
         errorMsg = "";
 
-        if (!titulo.trim() || !fechaHora) {
-            errorMsg = "Completá el título y la fecha/hora del partido.";
+        if (!titulo.trim() || !fecha || !hora) {
+            errorMsg = "Completá el título, la fecha y la hora del partido.";
             return;
         }
 
         procesando = true;
         try {
+            const fechaHoraIso = new Date(`${fecha}T${hora}`).toISOString();
             const res = await eventosApi.crear({
                 titulo: titulo.trim(),
                 descripcion: descripcion.trim() || null,
                 deporte,
-                fechaHora: new Date(fechaHora).toISOString(),
+                fechaHora: fechaHoraIso,
                 ubicacionTexto: ubicacionTexto.trim() || "A confirmar",
                 cupoMaximo: Number(cupoMaximo),
                 visibilidad,
@@ -170,12 +172,28 @@
                             for="ev-fecha"
                             class="block font-semibold text-sm text-slate-700 mb-1.5"
                         >
-                            Fecha y Hora *
+                            Fecha del Partido *
                         </label>
                         <input
                             id="ev-fecha"
-                            type="datetime-local"
-                            bind:value={fechaHora}
+                            type="date"
+                            bind:value={fecha}
+                            required
+                            class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            for="ev-hora"
+                            class="block font-semibold text-sm text-slate-700 mb-1.5"
+                        >
+                            Hora de Inicio *
+                        </label>
+                        <input
+                            id="ev-hora"
+                            type="time"
+                            bind:value={hora}
                             required
                             class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
