@@ -1,5 +1,6 @@
 <script>
     import Navbar from "../components/Navbar.svelte";
+    import PageHeader from "../components/PageHeader.svelte";
     import TarjetaPartido from "../components/TarjetaPartido.svelte";
     import { eventosApi } from "../lib/api.js";
 
@@ -134,7 +135,7 @@
         try {
             await eventosApi.responderInvitacion(eventoId, aceptar);
             if (aceptar) {
-                onNavigate("partido-detalle", { eventoId });
+                onNavigate("detalle-partido", { eventoId });
             } else {
                 mostrarExito("Invitación rechazada");
                 cargarTab("mios", filtroDeporte);
@@ -190,31 +191,14 @@
 
 <div class="pt-main">
     <main class="pt-content space-y-6">
-        <header class="pt-page-header flex-wrap">
-            <div>
-                <p
-                    class="text-xs uppercase tracking-wider text-blue-100 font-bold mb-1"
-                >
-                    PlayTime Partidos
-                </p>
-                <h1 class="text-2xl sm:text-3xl font-extrabold">
-                    Mis Partidos y Comunidad
-                </h1>
-                <p class="text-sm text-blue-100/90 mt-1">
-                    Organizá tus partidos, sumate a partidos públicos o anotate
-                    en la bolsa de jugadores disponibles.
-                </p>
-            </div>
-
-            <button
-                type="button"
-                onclick={() => onNavigate("organizar-partido")}
-                class="btn-pt btn-pt-success"
-            >
-                <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
-                <span>Organizar Partido</span>
-            </button>
-        </header>
+        <PageHeader
+            etiqueta="PlayTime Partidos"
+            titulo="Mis Partidos y Comunidad"
+            descripcion="Organizá tus partidos, sumate a partidos públicos o anotate en la bolsa de jugadores disponibles."
+            textoBoton="Crear Partido"
+            iconoBoton="bi-plus-circle-fill"
+            onAccion={() => onNavigate("crear-partido")}
+        />
 
         <!-- Navegación entre las 3 secciones de Partidos -->
         <div
@@ -402,7 +386,7 @@
                             </p>
                             <button
                                 type="button"
-                                onclick={() => onNavigate("organizar-partido")}
+                                onclick={() => onNavigate("crear-partido")}
                                 class="btn-pt btn-pt-success btn-pt-sm"
                             >
                                 <i
@@ -419,7 +403,7 @@
                                     evento={ev}
                                     textoBoton="Ver Equipos, Invitaciones y Datos"
                                     onVerDetalle={(id) =>
-                                        onNavigate("partido-detalle", {
+                                        onNavigate("detalle-partido", {
                                             eventoId: id,
                                         })}
                                 />
@@ -481,7 +465,7 @@
                         </p>
                         <button
                             type="button"
-                            onclick={() => onNavigate("organizar-partido")}
+                            onclick={() => onNavigate("crear-partido")}
                             class="btn-pt btn-pt-success btn-pt-sm"
                         >
                             <i class="bi bi-plus-circle-fill" aria-hidden="true"
@@ -496,7 +480,7 @@
                                 evento={ev}
                                 textoBoton="Ver Partido y Equipos"
                                 onVerDetalle={(id) =>
-                                    onNavigate("partido-detalle", {
+                                    onNavigate("detalle-partido", {
                                         eventoId: id,
                                     })}
                             />

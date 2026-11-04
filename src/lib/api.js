@@ -63,7 +63,16 @@ async function peticion(ruta, opciones = {}) {
         headers,
     });
 
-    const json = await res.json().catch(() => null);
+    const json = await res.json().catch((err) => {
+        if (err?.name === "AbortError" || opciones.signal?.aborted) {
+            throw err;
+        }
+        return null;
+    });
+
+    if (opciones.signal?.aborted) {
+        throw new DOMException("Petición cancelada", "AbortError");
+    }
 
     if (!res.ok || (json && json.success === false)) {
         const msg =
@@ -73,7 +82,7 @@ async function peticion(ruta, opciones = {}) {
         throw new Error(msg);
     }
 
-    return json;
+    return json ?? { success: true, data: null };
 }
 
 // ==================== API DE EVENTOS SOCIALES ====================
@@ -164,5 +173,43 @@ export const amistadesApi = {
     eliminar: (otroUid) =>
         peticion(`/amistades/${otroUid}`, {
             method: "DELETE",
+        }),
+};
+// ==================== API DE EQUIPOS Y DESAFÍOS ====================
+export const equiposApi = {
+    crear: (dto) =>
+        peticion("/equipos", {
+            method: "POST",
+            body: JSON.stringify(dto),
+        }),
+    listarMios: (signal) => peticion("/equipos/mios", { signal }),
+    listarRivales: (deporte = "", signal) => {
+        const q = deporte ? `?deporte=${encodeURIComponent(deporte)}` : "";
+        return peticion(`/equipos/rivales${q}`, { signal });
+    },
+    actualizarDisponibilidad: (equipoId, dto) =>
+        peticion(`/equipos/${equipoId}/disponibilidad`, {
+            method: "PUT",
+            body: JSON.stringify(dto),
+        }),
+    agregarMiembro: (equipoId, payload) =>
+        peticion(`/equipos/${equipoId}/miembros`, {
+            method: "POST",
+            body: JSON.stringify(payload),
+        }),
+    quitarMiembro: (equipoId, jugadorUid) =>
+        peticion(`/equipos/${equipoId}/miembros/${jugadorUid}`, {
+            method: "DELETE",
+        }),
+    enviarDesafio: (dto) =>
+        peticion("/equipos/desafios", {
+            method: "POST",
+            body: JSON.stringify(dto),
+        }),
+    listarDesafios: (signal) => peticion("/equipos/desafios", { signal }),
+    responderDesafio: (desafioId, aceptar) =>
+        peticion(`/equipos/desafios/${desafioId}/responder`, {
+            method: "POST",
+            body: JSON.stringify({ aceptar }),
         }),
 };

@@ -4,10 +4,12 @@
   import Register from "./pages/Register.svelte";
   import Home from "./pages/Home.svelte";
   import Partidos from "./pages/Partidos.svelte";
-  import OrganizarPartido from "./pages/OrganizarPartido.svelte";
+  import CrearPartido from "./pages/CrearPartido.svelte";
   import EditarPartido from "./pages/EditarPartido.svelte";
-  import PartidoDetalle from "./pages/PartidoDetalle.svelte";
+  import DetallePartido from "./pages/DetallePartido.svelte";
   import Amigos from "./pages/Amigos.svelte";
+  import Equipos from "./pages/Equipos.svelte";
+  import CrearEquipo from "./pages/CrearEquipo.svelte";
   import { tieneSesionActiva } from "./lib/api.js";
 
   // Únicas rutas públicas sin sesión
@@ -33,8 +35,8 @@
     if (path === "/home") {
       return { view: "home", options: {} };
     }
-    if (path === "/organizar-partido") {
-      return { view: "organizar-partido", options: {} };
+    if (path === "/crear-partido") {
+      return { view: "crear-partido", options: {} };
     }
     if (path.startsWith("/partidos/") && path.endsWith("/editar")) {
       const eventoId = decodeURIComponent(
@@ -44,9 +46,9 @@
     }
     if (path.startsWith("/partidos/")) {
       const eventoId = decodeURIComponent(path.slice("/partidos/".length));
-      return { view: "partido-detalle", options: { eventoId } };
+      return { view: "detalle-partido", options: { eventoId } };
     }
-    if (path === "/partidos" || path === "/comunidad") {
+    if (path === "/partidos") {
       return {
         view: "partidos",
         options: { tab: params.get("tab") || "mios" },
@@ -54,6 +56,15 @@
     }
     if (path === "/amigos") {
       return { view: "amigos", options: {} };
+    }
+    if (path === "/equipos") {
+      return {
+        view: "equipos",
+        options: { tab: params.get("tab") || "mios" },
+      };
+    }
+    if (path === "/crear-equipo") {
+      return { view: "crear-equipo", options: {} };
     }
 
     // Si escribe cualquier otra ruta privada (ej: /reservas, /torneos), se trata como ruta protegida
@@ -71,24 +82,27 @@
         return "/register";
       case "home":
         return "/home";
-      case "organizar-partido":
-        return "/organizar-partido";
+      case "crear-partido":
+        return "/crear-partido";
       case "editar-partido":
         return options.eventoId
           ? `/partidos/${encodeURIComponent(options.eventoId)}/editar`
           : "/partidos";
-      case "partido-detalle":
+      case "detalle-partido":
         return options.eventoId
           ? `/partidos/${encodeURIComponent(options.eventoId)}`
           : "/partidos";
-      case "partidos":
-      case "comunidad": {
+      case "partidos": {
         const tab =
           options.tab && options.tab !== "mios" ? `?tab=${options.tab}` : "";
         return `/partidos${tab}`;
       }
       case "amigos":
         return "/amigos";
+      case "equipos":
+        return "/equipos";
+      case "crear-equipo":
+        return "/crear-equipo";
       default:
         return "/home";
     }
@@ -147,14 +161,6 @@
 
   // 4. Función central de navegación
   function navigate(view, options = {}, reemplazarHistorial = false) {
-    if (view === "comunidad" && options.abrirCrear) {
-      view = "organizar-partido";
-      options = {};
-    } else if (view === "comunidad" && options.eventoId) {
-      view = "partido-detalle";
-      options = { eventoId: options.eventoId };
-    }
-
     const decision = evaluarMiddleware(view, options);
     currentView = decision.view;
     navOptions = decision.options;
@@ -212,18 +218,22 @@
     <Register onNavigate={navigate} />
   {:else if currentView === "home"}
     <Home onNavigate={navigate} />
-  {:else if currentView === "partidos" || currentView === "comunidad"}
+  {:else if currentView === "partidos"}
     <Partidos onNavigate={navigate} initialTab={navOptions.tab || "mios"} />
-  {:else if currentView === "organizar-partido"}
-    <OrganizarPartido onNavigate={navigate} />
+  {:else if currentView === "crear-partido"}
+    <CrearPartido onNavigate={navigate} />
   {:else if currentView === "editar-partido"}
     <EditarPartido onNavigate={navigate} eventoId={navOptions.eventoId || ""} />
-  {:else if currentView === "partido-detalle"}
-    <PartidoDetalle
+  {:else if currentView === "detalle-partido"}
+    <DetallePartido
       onNavigate={navigate}
       eventoId={navOptions.eventoId || ""}
     />
   {:else if currentView === "amigos"}
     <Amigos onNavigate={navigate} />
+  {:else if currentView === "equipos"}
+    <Equipos onNavigate={navigate} initialTab={navOptions.tab || "mios"} />
+  {:else if currentView === "crear-equipo"}
+    <CrearEquipo onNavigate={navigate} />
   {/if}
 </div>

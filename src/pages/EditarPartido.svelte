@@ -85,7 +85,7 @@
                 cupoMaximo: Number(form.cupoMaximo),
             };
             await eventosApi.actualizar(eventoId, payload);
-            onNavigate("partido-detalle", { eventoId });
+            onNavigate("detalle-partido", { eventoId });
         } catch (err) {
             errorMsg = err.message;
         } finally {

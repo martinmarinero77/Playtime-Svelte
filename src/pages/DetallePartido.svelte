@@ -142,7 +142,7 @@
                     "¡Aceptaste la invitación! Ya podés elegir camiseta.",
                 );
             } else {
-                onNavigate("comunidad", { tab: "mios" });
+                onNavigate("partidos", { tab: "mios" });
             }
         } catch (err) {
             errorMsg = err.message;
@@ -251,7 +251,7 @@
                 }
                 await eventosApi.abandonar(eventoDetalle.id);
             }
-            onNavigate("comunidad", { tab: "mios" });
+            onNavigate("partidos", { tab: "mios" });
         } catch (err) {
             errorMsg = err.message;
         } finally {
@@ -271,7 +271,7 @@
     }
 </script>
 
-<Navbar activePage="comunidad" {onNavigate} />
+<Navbar activePage="partidos" {onNavigate} />
 
 <div class="pt-main">
     <main class="pt-content space-y-6">

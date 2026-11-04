@@ -94,13 +94,19 @@
         <button
             type="button"
             onclick={() => irA("partidos")}
-            class="pt-nav-item {activePage === 'partidos' ||
-            activePage === 'comunidad'
-                ? 'active'
-                : ''}"
+            class="pt-nav-item {activePage === 'partidos' ? 'active' : ''}"
         >
-            <i class="bi bi-people-fill" aria-hidden="true"></i>
-            <span>Partidos</span>
+            <i class="bi bi-dribbble" aria-hidden="true"></i>
+            <span>Jugar Partido</span>
+        </button>
+
+        <button
+            type="button"
+            onclick={() => irA("equipos")}
+            class="pt-nav-item {activePage === 'equipos' ? 'active' : ''}"
+        >
+            <i class="bi bi-shield-shaded" aria-hidden="true"></i>
+            <span>Equipos y Desafíos</span>
         </button>
 
         <button
@@ -126,13 +132,11 @@
     <nav class="pt-nav" aria-label="Accesos rápidos sociales">
         <button
             type="button"
-            onclick={() => irA("organizar-partido")}
-            class="pt-nav-item {activePage === 'organizar-partido'
-                ? 'active'
-                : ''}"
+            onclick={() => irA("crear-partido")}
+            class="pt-nav-item {activePage === 'crear-partido' ? 'active' : ''}"
         >
             <i class="bi bi-plus-circle-fill" aria-hidden="true"></i>
-            <span>Organizar Partido</span>
+            <span>Crear Partido</span>
         </button>
 
         <button

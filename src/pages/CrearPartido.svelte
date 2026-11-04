@@ -1,5 +1,6 @@
 <script>
     import Navbar from "../components/Navbar.svelte";
+    import PageHeader from "../components/PageHeader.svelte";
     import { eventosApi } from "../lib/api.js";
 
     let { onNavigate = () => {} } = $props();
@@ -52,7 +53,7 @@
             });
 
             // Al crear el partido, vamos directo a la vista de ese partido para armar equipos e invitar
-            onNavigate("partido-detalle", { eventoId: res.data.id });
+            onNavigate("detalle-partido", { eventoId: res.data.id });
         } catch (err) {
             errorMsg = err.message;
         } finally {
@@ -61,35 +62,19 @@
     }
 </script>
 
-<Navbar activePage="organizar-partido" {onNavigate} />
+<Navbar activePage="crear-partido" {onNavigate} />
 
 <div class="pt-main">
     <main class="pt-content space-y-6">
-        <header class="pt-page-header flex-wrap">
-            <div>
-                <p
-                    class="text-xs uppercase tracking-wider text-blue-100 font-bold mb-1"
-                >
-                    Nuevo Evento Deportivo
-                </p>
-                <h1 class="text-2xl sm:text-3xl font-extrabold">
-                    Organizar Partido
-                </h1>
-                <p class="text-sm text-blue-100/90 mt-1">
-                    Configurá el deporte, horario y visibilidad. Luego podrás
-                    armar los equipos e invitar jugadores.
-                </p>
-            </div>
-
-            <button
-                type="button"
-                onclick={() => onNavigate("comunidad", { tab: "mios" })}
-                class="btn-pt btn-pt-outline btn-pt-sm"
-            >
-                <i class="bi bi-arrow-left" aria-hidden="true"></i>
-                <span>Volver a Mis Partidos</span>
-            </button>
-        </header>
+        <PageHeader
+            etiqueta="Nuevo Evento Deportivo"
+            titulo="Crear Partido"
+            descripcion="Configurá el deporte, horario y visibilidad. Luego podrás armar los equipos e invitar jugadores."
+            textoBoton="Volver a Mis Partidos"
+            iconoBoton="bi-arrow-left"
+            claseBoton="btn-pt-outline btn-pt-sm"
+            onAccion={() => onNavigate("partidos", { tab: "mios" })}
+        />
 
         {#if errorMsg}
             <div class="pt-alert pt-alert-danger" role="alert">
@@ -281,7 +266,7 @@
                 >
                     <button
                         type="button"
-                        onclick={() => onNavigate("comunidad", { tab: "mios" })}
+                        onclick={() => onNavigate("partidos", { tab: "mios" })}
                         class="btn-pt btn-pt-outline"
                     >
                         Cancelar

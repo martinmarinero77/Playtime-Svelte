@@ -1,5 +1,6 @@
 <script>
     import Navbar from "../components/Navbar.svelte";
+    import PageHeader from "../components/PageHeader.svelte";
     import { obtenerUsuarioActual, eventosApi } from "../lib/api.js";
 
     let { onNavigate = () => {} } = $props();
@@ -89,32 +90,13 @@
 
 <div class="pt-main">
     <main class="pt-content space-y-8">
-        <!-- PAGE HEADER (según sección #layout del Design System) -->
-        <header class="pt-page-header">
-            <div>
-                <p
-                    class="text-xs uppercase tracking-wider text-blue-100 font-bold mb-1"
-                >
-                    Panel Principal
-                </p>
-                <h1
-                    class="text-2xl sm:text-3xl font-extrabold flex items-center gap-2"
-                >
-                    <span>¡Hola, {usuario.nombre}!</span>
-                    <span aria-hidden="true">⚽</span>
-                </h1>
-                <p
-                    class="text-sm text-blue-100/90 mt-1 flex items-center gap-1.5"
-                >
-                    <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
-                    <span>{usuario.localidad || "San Juan, Argentina"}</span>
-                </p>
-            </div>
-
-            <div class="icon-box" aria-hidden="true">
-                <i class="bi bi-calendar-check-fill"></i>
-            </div>
-        </header>
+        <PageHeader
+            etiqueta="Panel Principal"
+            titulo={`¡Hola, ${usuario.nombre}! ⚽`}
+            descripcion={usuario.localidad || "San Juan, Argentina"}
+            iconoDescripcion="bi-geo-alt-fill"
+            iconoDecorativo="bi-calendar-check-fill"
+        />
 
         <!-- ACCIONES RÁPIDAS (Orden pedido: 1. Organizar, 2. Reservar, 3. Públicos, 4. Torneos) -->
         <section aria-label="Acciones rápidas">
@@ -129,14 +111,10 @@
             </h2>
 
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- 1. Organizar Partido -->
+                <!-- 1. Crear Partido -->
                 <button
                     type="button"
-                    onclick={() =>
-                        onNavigate("comunidad", {
-                            tab: "mios",
-                            abrirCrear: true,
-                        })}
+                    onclick={() => onNavigate("crear-partido")}
                     class="stat-card hoverable cursor-pointer text-center"
                 >
                     <div
@@ -147,10 +125,10 @@
                         ></i>
                     </div>
                     <div class="font-bold text-slate-800 text-sm">
-                        Organizar Partido
+                        Crear Partido
                     </div>
                     <p class="text-xs text-slate-500 mt-1">
-                        Creá un evento y armá equipos
+                        Creá un Partido y armá equipos
                     </p>
                 </button>
 
@@ -178,7 +156,7 @@
                 <!-- 3. Ver Partidos Públicos -->
                 <button
                     type="button"
-                    onclick={() => onNavigate("comunidad", { tab: "explorar" })}
+                    onclick={() => onNavigate("partidos", { tab: "publicos" })}
                     class="stat-card hoverable cursor-pointer text-center"
                 >
                     <div
@@ -231,7 +209,7 @@
                 </h2>
                 <button
                     type="button"
-                    onclick={() => onNavigate("comunidad", { tab: "mios" })}
+                    onclick={() => onNavigate("partidos", { tab: "mios" })}
                     class="btn-pt btn-pt-soft btn-pt-sm"
                 >
                     <span>Ver todos</span>
@@ -259,21 +237,16 @@
                     <div class="flex flex-wrap justify-center gap-3">
                         <button
                             type="button"
-                            onclick={() =>
-                                onNavigate("comunidad", {
-                                    tab: "mios",
-                                    abrirCrear: true,
-                                })}
+                            onclick={() => onNavigate("crear-partido")}
                             class="btn-pt btn-pt-success btn-pt-sm"
                         >
                             <i class="bi bi-plus-circle-fill" aria-hidden="true"
                             ></i>
-                            <span>Organizar Partido</span>
+                            <span>Crear Partido</span>
                         </button>
                         <button
                             type="button"
-                            onclick={() =>
-                                onNavigate("comunidad", { tab: "explorar" })}
+                            onclick={() => onNavigate("crear-partido")}
                             class="btn-pt btn-pt-soft btn-pt-sm"
                         >
                             <i class="bi bi-people-fill" aria-hidden="true"></i>
@@ -337,7 +310,7 @@
                                 <button
                                     type="button"
                                     onclick={() =>
-                                        onNavigate("comunidad", {
+                                        onNavigate("detalle-partido", {
                                             tab: "mios",
                                             eventoId: ev.id,
                                         })}
