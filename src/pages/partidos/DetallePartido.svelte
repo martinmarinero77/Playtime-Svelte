@@ -1,8 +1,8 @@
 <script>
-    import Navbar from "../components/Navbar.svelte";
-    import CuadroEquipo from "../components/CuadroEquipo.svelte";
-    import PanelInvitacionesPartido from "../components/PanelInvitacionesPartido.svelte";
-    import { eventosApi, amistadesApi } from "../lib/api.js";
+    import Navbar from "../../components/Navbar.svelte";
+    import CuadroEquipo from "../../components/partidos/CuadroEquipo.svelte";
+    import PanelInvitaciones from "../../components/PanelInvitaciones.svelte";
+    import { eventosApi, amistadesApi } from "../../lib/api.js";
 
     let { eventoId = "", onNavigate = () => {} } = $props();
 
@@ -522,9 +522,16 @@
                     />
                 </section>
             {:else if seccionActiva === "invitaciones"}
-                <!-- SECCIÓN 2: COMPONENTE PanelInvitacionesPartido -->
-                <PanelInvitacionesPartido
-                    {eventoDetalle}
+                <!-- SECCIÓN 2: COMPONENTE COMPARTIDO PanelInvitaciones -->
+                <PanelInvitaciones
+                    titulo="Enviar Invitación a este Partido"
+                    textoBotonInvitar="Invitar"
+                    textoYaMiembro="Ya invitado / En partido"
+                    placeholderContacto="Ingresá el email o teléfono del jugador..."
+                    puedoInvitar={eventoDetalle.miEstado === "CONFIRMADO" &&
+                        eventoDetalle.estado !== "CANCELADO"}
+                    mostrarSolicitudes={eventoDetalle.soyOrganizador}
+                    miembrosActuales={eventoDetalle.participantes}
                     {amigos}
                     {jugadoresDisponibles}
                     {solicitudesIngreso}

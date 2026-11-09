@@ -1,8 +1,8 @@
 <script>
-    import Navbar from "../components/Navbar.svelte";
-    import PageHeader from "../components/PageHeader.svelte";
-    import TarjetaEquipo from "../components/TarjetaEquipo.svelte";
-    import { equiposApi, amistadesApi } from "../lib/api.js";
+    import Navbar from "../../components/Navbar.svelte";
+    import PageHeader from "../../components/PageHeader.svelte";
+    import TarjetaEquipo from "../../components/equipos/TarjetaEquipo.svelte";
+    import { equiposApi, amistadesApi } from "../../lib/api.js";
 
     let { onNavigate = () => {}, initialTab = "mios" } = $props();
 
@@ -341,11 +341,11 @@
                             <TarjetaEquipo
                                 equipo={eq}
                                 esMio={true}
-                                {amigos}
-                                {procesando}
                                 onToggleBuscandoRival={handleToggleBuscandoRival}
-                                onAgregarMiembro={handleAgregarMiembro}
-                                onQuitarMiembro={handleQuitarMiembro}
+                                onGestionar={(id) =>
+                                    onNavigate("detalle-equipo", {
+                                        equipoId: id,
+                                    })}
                             />
                         {/each}
                     </div>

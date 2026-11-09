@@ -1,7 +1,7 @@
 <script>
-    import Navbar from "../components/Navbar.svelte";
-    import PageHeader from "../components/PageHeader.svelte";
-    import { eventosApi } from "../lib/api.js";
+    import Navbar from "../../components/Navbar.svelte";
+    import PageHeader from "../../components/PageHeader.svelte";
+    import { eventosApi } from "../../lib/api.js";
 
     let { onNavigate = () => {} } = $props();
 

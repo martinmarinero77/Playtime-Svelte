@@ -3,13 +3,15 @@
   import Login from "./pages/Login.svelte";
   import Register from "./pages/Register.svelte";
   import Home from "./pages/Home.svelte";
-  import Partidos from "./pages/Partidos.svelte";
-  import CrearPartido from "./pages/CrearPartido.svelte";
-  import EditarPartido from "./pages/EditarPartido.svelte";
-  import DetallePartido from "./pages/DetallePartido.svelte";
+  import Partidos from "./pages/partidos/Partidos.svelte";
+  import CrearPartido from "./pages/partidos/CrearPartido.svelte";
+  import DetallePartido from "./pages/partidos/DetallePartido.svelte";
+  import EditarPartido from "./pages/partidos/EditarPartido.svelte";
   import Amigos from "./pages/Amigos.svelte";
-  import Equipos from "./pages/Equipos.svelte";
-  import CrearEquipo from "./pages/CrearEquipo.svelte";
+  import Equipos from "./pages/equipos/Equipos.svelte";
+  import CrearEquipo from "./pages/equipos/CrearEquipo.svelte";
+  import DetalleEquipo from "./pages/equipos/DetalleEquipo.svelte";
+  import EditarEquipo from "./pages/equipos/EditarEquipo.svelte";
   import { router, navigate, inicializarRouter } from "./lib/router.svelte.js";
 
   // Inicializa el router al montar y limpia el listener popstate al desmontar
@@ -39,13 +41,13 @@
     <Partidos onNavigate={navigate} initialTab={router.options.tab || "mios"} />
   {:else if router.view === "crear-partido"}
     <CrearPartido onNavigate={navigate} />
-  {:else if router.view === "editar-partido"}
-    <EditarPartido
+  {:else if router.view === "detalle-partido"}
+    <DetallePartido
       onNavigate={navigate}
       eventoId={router.options.eventoId || ""}
     />
-  {:else if router.view === "detalle-partido"}
-    <DetallePartido
+  {:else if router.view === "editar-partido"}
+    <EditarPartido
       onNavigate={navigate}
       eventoId={router.options.eventoId || ""}
     />
@@ -55,5 +57,15 @@
     <Equipos onNavigate={navigate} initialTab={router.options.tab || "mios"} />
   {:else if router.view === "crear-equipo"}
     <CrearEquipo onNavigate={navigate} />
+  {:else if router.view === "detalle-equipo"}
+    <DetalleEquipo
+      onNavigate={navigate}
+      equipoId={router.options.equipoId || ""}
+    />
+  {:else if router.view === "editar-equipo"}
+    <EditarEquipo
+      onNavigate={navigate}
+      equipoId={router.options.equipoId || ""}
+    />
   {/if}
 </div>

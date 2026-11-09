@@ -1,6 +1,6 @@
 <script>
-    import Navbar from "../components/Navbar.svelte";
-    import { eventosApi } from "../lib/api.js";
+    import Navbar from "../../components/Navbar.svelte";
+    import { eventosApi } from "../../lib/api.js";
 
     let { eventoId = "", onNavigate = () => {} } = $props();
 

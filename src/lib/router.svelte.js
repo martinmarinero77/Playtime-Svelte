@@ -53,6 +53,16 @@ export function parsearUrlActual() {
     if (path === "/crear-equipo") {
         return { view: "crear-equipo", options: {} };
     }
+    if (path.startsWith("/equipos/") && path.endsWith("/editar")) {
+        const equipoId = decodeURIComponent(
+            path.slice("/equipos/".length, -"/editar".length),
+        );
+        return { view: "editar-equipo", options: { equipoId } };
+    }
+    if (path.startsWith("/equipos/")) {
+        const equipoId = decodeURIComponent(path.slice("/equipos/".length));
+        return { view: "detalle-equipo", options: { equipoId } };
+    }
     return { view: "home", options: {} };
 }
 
@@ -91,6 +101,14 @@ export function construirUrl(view, options = {}) {
         }
         case "crear-equipo":
             return "/crear-equipo";
+        case "detalle-equipo":
+            return options.equipoId
+                ? `/equipos/${encodeURIComponent(options.equipoId)}`
+                : "/equipos";
+        case "editar-equipo":
+            return options.equipoId
+                ? `/equipos/${encodeURIComponent(options.equipoId)}/editar`
+                : "/equipos";
         default:
             return "/home";
     }

@@ -1,20 +1,23 @@
 <script>
-    /**
-     * Panel de Invitaciones y Solicitudes de un partido específico.
-     */
     let {
-        eventoDetalle,
+        titulo = "Enviar Invitación",
+        textoBotonInvitar = "Invitar",
+        textoYaMiembro = "Ya participa",
+        placeholderContacto = "Ingresá el email o teléfono del jugador...",
+        puedoInvitar = false,
+        mostrarSolicitudes = false,
+        miembrosActuales = [],
         amigos = [],
         jugadoresDisponibles = [],
         solicitudesIngreso = [],
         invitadosPendientes = [],
         procesandoAccion = false,
         onInvitarAmigo = () => {},
-        onInvitarContacto = () => {},
+        onInvitarContacto = async () => false,
         onResolverSolicitud = () => {},
     } = $props();
 
-    let modoInvitacion = $state("amigo"); // 'amigo' | 'contacto'
+    let modoInvitacion = $state("amigo"); // 'amigo' | 'disponibles' | 'contacto'
     let contactoInvitar = $state("");
 
     function inicialNombre(nombre) {
@@ -32,8 +35,8 @@
     }
 </script>
 
-<section aria-label="Invitaciones y solicitudes del partido" class="space-y-5">
-    {#if eventoDetalle.miEstado === "CONFIRMADO" && eventoDetalle.estado !== "CANCELADO"}
+<section aria-label={titulo} class="space-y-5">
+    {#if puedoInvitar}
         <article class="pt-card p-5 space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h2
@@ -43,7 +46,7 @@
                         class="bi bi-send-fill text-emerald-600"
                         aria-hidden="true"
                     ></i>
-                    <span>Enviar Invitación a este Partido</span>
+                    <span>{titulo}</span>
                 </h2>
 
                 <div class="flex flex-wrap gap-2">
@@ -55,7 +58,7 @@
                             : ''}"
                     >
                         <i class="bi bi-people-fill" aria-hidden="true"></i>
-                        <span>De mis Amigos</span>
+                        <span>De mis Amigos ({amigos.length})</span>
                     </button>
                     <button
                         type="button"
@@ -77,7 +80,7 @@
                             : ''}"
                     >
                         <i class="bi bi-envelope-fill" aria-hidden="true"></i>
-                        <span>Por Email o Teléfono</span>
+                        <span>Por Contacto</span>
                     </button>
                 </div>
             </div>
@@ -86,13 +89,12 @@
                 {#if amigos.length === 0}
                     <p class="text-sm text-slate-500">
                         Todavía no tenés amigos en tu lista. Podés invitar por
-                        email/teléfono o agregar amigos en la sección "Mis
-                        Amigos".
+                        contacto o agregar amigos en la sección "Mis Amigos".
                     </p>
                 {:else}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {#each amigos as a (a.uid)}
-                            {@const yaEsta = eventoDetalle.participantes.some(
+                            {@const yaEsta = miembrosActuales.some(
                                 (p) => p.uid === a.uid,
                             )}
                             <div class="player-card">
@@ -108,7 +110,7 @@
                                             class="font-semibold text-sm text-slate-800 truncate"
                                         >
                                             {a.nombre}
-                                            {a.apellido}
+                                            {a.apellido || ""}
                                         </div>
                                         <div
                                             class="text-xs text-slate-500 truncate"
@@ -119,7 +121,7 @@
                                 </div>
                                 {#if yaEsta}
                                     <span class="status-badge status-info">
-                                        Ya invitado / En partido
+                                        {textoYaMiembro}
                                     </span>
                                 {:else}
                                     <button
@@ -132,7 +134,7 @@
                                             class="bi bi-send-fill"
                                             aria-hidden="true"
                                         ></i>
-                                        <span>Invitar</span>
+                                        <span>{textoBotonInvitar}</span>
                                     </button>
                                 {/if}
                             </div>
@@ -148,7 +150,7 @@
                 {:else}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {#each jugadoresDisponibles as j (j.uid)}
-                            {@const yaEsta = eventoDetalle.participantes.some(
+                            {@const yaEsta = miembrosActuales.some(
                                 (p) => p.uid === j.uid,
                             )}
                             <div class="player-card">
@@ -164,7 +166,7 @@
                                             class="font-semibold text-sm text-slate-800 truncate"
                                         >
                                             {j.nombre}
-                                            {j.apellido}
+                                            {j.apellido || ""}
                                         </div>
                                         <div
                                             class="text-xs text-slate-600 truncate"
@@ -192,7 +194,7 @@
                                 </div>
                                 {#if yaEsta}
                                     <span class="status-badge status-info">
-                                        Ya invitado / En partido
+                                        {textoYaMiembro}
                                     </span>
                                 {:else}
                                     <button
@@ -205,7 +207,7 @@
                                             class="bi bi-send-fill"
                                             aria-hidden="true"
                                         ></i>
-                                        <span>Invitar</span>
+                                        <span>{textoBotonInvitar}</span>
                                     </button>
                                 {/if}
                             </div>
@@ -218,14 +220,14 @@
                     class="flex flex-col sm:flex-row gap-3"
                 >
                     <label for="input-contacto-invitar" class="sr-only">
-                        Email o teléfono del jugador a invitar
+                        {placeholderContacto}
                     </label>
                     <input
                         id="input-contacto-invitar"
                         type="text"
                         bind:value={contactoInvitar}
                         required
-                        placeholder="Ingresá el email o teléfono del jugador..."
+                        placeholder={placeholderContacto}
                         class="flex-1 px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     <button
@@ -234,14 +236,14 @@
                         class="btn-pt btn-pt-primary"
                     >
                         <i class="bi bi-send-fill" aria-hidden="true"></i>
-                        <span>Enviar Invitación</span>
+                        <span>{textoBotonInvitar}</span>
                     </button>
                 </form>
             {/if}
         </article>
     {/if}
 
-    {#if eventoDetalle.soyOrganizador}
+    {#if mostrarSolicitudes}
         <!-- Solicitudes para unirse -->
         <article class="pt-card p-5 space-y-3">
             <h2
