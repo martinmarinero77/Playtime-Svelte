@@ -111,11 +111,11 @@
 
         <button
             type="button"
-            onclick={() => irA("reservas")}
-            class="pt-nav-item {activePage === 'reservas' ? 'active' : ''}"
+            onclick={() => irA("complejos")}
+            class="pt-nav-item {activePage === 'complejos' ? 'active' : ''}"
         >
-            <i class="bi bi-calendar-check-fill" aria-hidden="true"></i>
-            <span>Mis Reservas</span>
+            <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+            <span>Complejos</span>
         </button>
 
         <button
@@ -126,10 +126,19 @@
             <i class="bi bi-trophy-fill" aria-hidden="true"></i>
             <span>Torneos</span>
         </button>
+
+        <button
+            type="button"
+            onclick={() => irA("amigos")}
+            class="pt-nav-item {activePage === 'amigos' ? 'active' : ''}"
+        >
+            <i class="bi bi-person-hearts" aria-hidden="true"></i>
+            <span>Mis Amigos</span>
+        </button>
     </nav>
 
-    <div class="pt-nav-label">Social</div>
-    <nav class="pt-nav" aria-label="Accesos rápidos sociales">
+    <div class="pt-nav-label">Acciones Rápidas</div>
+    <nav class="pt-nav" aria-label="Atajos de creación rápida">
         <button
             type="button"
             onclick={() => irA("crear-partido")}
@@ -141,11 +150,11 @@
 
         <button
             type="button"
-            onclick={() => irA("amigos")}
-            class="pt-nav-item {activePage === 'amigos' ? 'active' : ''}"
+            onclick={() => irA("crear-equipo")}
+            class="pt-nav-item {activePage === 'crear-equipo' ? 'active' : ''}"
         >
-            <i class="bi bi-person-hearts" aria-hidden="true"></i>
-            <span>Mis Amigos</span>
+            <i class="bi bi-shield-plus" aria-hidden="true"></i>
+            <span>Crear Equipo</span>
         </button>
     </nav>
 

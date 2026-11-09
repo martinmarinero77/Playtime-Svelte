@@ -62,8 +62,7 @@
     }
 </script>
 
-<Navbar activePage="equipos" {onNavigate} />
-
+<Navbar activePage="crear-equipo" {onNavigate} />
 <div class="pt-main">
     <main class="pt-content space-y-6">
         <PageHeader
