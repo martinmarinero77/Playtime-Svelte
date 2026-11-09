@@ -59,6 +59,7 @@ async function peticion(ruta, opciones = {}) {
     };
 
     const res = await fetch(`${API_BASE}${ruta}`, {
+        cache: "no-store",
         ...opciones,
         headers,
     });
