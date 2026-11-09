@@ -1,6 +1,7 @@
 <script>
     import Navbar from "../../components/Navbar.svelte";
     import PageHeader from "../../components/PageHeader.svelte";
+    import FiltroDeportes from "../../components/FiltroDeportes.svelte";
     import { equiposApi } from "../../lib/api.js";
 
     let { equipoId = "", onNavigate = () => {} } = $props();
@@ -12,7 +13,7 @@
     // Variables de la colección "equipos" en Firestore
     let nombre = $state("");
     let sigla = $state("");
-    let deporte = $state("Fútbol 5");
+    let deporte = $state("Futbol");
     let nivel = $state("Intermedio");
     let localidad = $state("");
     let buscandoRival = $state(true);
@@ -20,17 +21,8 @@
     let horaDesde = $state("20:00");
     let horaHasta = $state("23:00");
 
-    const deportesLista = [
-        "Fútbol 5",
-        "Fútbol 7",
-        "Fútbol 8",
-        "Fútbol 11",
-        "Pádel",
-        "Tenis",
-        "Básquet",
-        "Vóley",
-    ];
     const nivelesLista = ["Recreativo", "Intermedio", "Competitivo"];
+
     const diasSemana = [
         "Lunes",
         "Martes",
@@ -66,7 +58,7 @@
 
             nombre = eq.nombre || "";
             sigla = eq.sigla || "";
-            deporte = eq.deporte || "Fútbol 5";
+            deporte = eq.deporte || "Futbol";
             nivel = eq.nivel || "Intermedio";
             localidad = eq.localidad || "";
             buscandoRival = Boolean(eq.buscandoRival);
@@ -161,7 +153,7 @@
                 </p>
             </div>
         {:else}
-            <section class="pt-card p-6 md:p-8 max-w-3xl mx-auto">
+            <section class="pt-card p-6">
                 <form onsubmit={handleSubmit} class="space-y-5">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="md:col-span-2">
@@ -201,25 +193,17 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label
-                                for="eq-deporte"
-                                class="block text-sm font-semibold text-slate-700 mb-1"
-                            >
-                                Deporte Principal *
-                            </label>
-                            <select
-                                id="eq-deporte"
-                                bind:value={deporte}
-                                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm"
-                            >
-                                {#each deportesLista as dep (dep)}
-                                    <option value={dep}>{dep}</option>
-                                {/each}
-                            </select>
-                        </div>
+                    <div>
+                        <FiltroDeportes
+                            titulo="Deporte Principal *"
+                            mostrarTodos={false}
+                            enTarjeta={false}
+                            seleccionado={deporte}
+                            onSeleccionar={(dep) => (deporte = dep)}
+                        />
+                    </div>
 
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label
                                 for="eq-nivel"

@@ -1,63 +1,56 @@
 <script>
     import Navbar from "../components/Navbar.svelte";
     import PageHeader from "../components/PageHeader.svelte";
-    import { obtenerUsuarioActual, eventosApi } from "../lib/api.js";
+    import FiltroDeportes from "../components/FiltroDeportes.svelte";
+    import {
+        obtenerUsuarioActual,
+        eventosApi,
+        catalogoApi,
+    } from "../lib/api.js";
 
     let { onNavigate = () => {} } = $props();
 
     const usuario = obtenerUsuarioActual();
 
     let searchTerm = $state("");
+    let filtroDeporte = $state("");
+
     let misProximosPartidos = $state([]);
+    let deportesCatalogo = $state([]);
+    let complejos = $state([]);
+    let complejoExpandidoId = $state(null);
+
     let cargandoPartidos = $state(true);
+    let cargandoComplejos = $state(true);
 
-    const complejos = [
-        {
-            id: 1,
-            nombre: "Complejo El Monumental",
-            direccion: "Av. Libertador 450, San Juan",
-            telefono: "+54 264 412-3456",
-            deportes: ["Fútbol 5", "Fútbol 7", "Pádel"],
-            gradiente: "linear-gradient(135deg, #34d399, #10b981)",
-        },
-        {
-            id: 2,
-            nombre: "Canchas La Redonda",
-            direccion: "Calle Mendoza 1250 Sur, San Juan",
-            telefono: "+54 264 498-7654",
-            deportes: ["Fútbol 5", "Fútbol 8"],
-            gradiente: "linear-gradient(135deg, #60a5fa, #3b82f6)",
-        },
-        {
-            id: 3,
-            nombre: "Pádel & Fútbol Center",
-            direccion: "Ruta 40 km 8, Pocito",
-            telefono: "+54 264 511-2233",
-            deportes: ["Pádel", "Tenis", "Fútbol 7"],
-            gradiente: "linear-gradient(135deg, #fb923c, #ea580c)",
-        },
-    ];
-
+    // R-08: Derivado que filtra por deporte seleccionado y por texto de búsqueda
     let complejosFiltrados = $derived(
-        searchTerm.trim() === ""
-            ? complejos
-            : complejos.filter(
-                  (c) =>
-                      c.nombre
-                          .toLowerCase()
-                          .includes(searchTerm.toLowerCase()) ||
-                      c.direccion
-                          .toLowerCase()
-                          .includes(searchTerm.toLowerCase()) ||
-                      c.deportes.some((d) =>
-                          d.toLowerCase().includes(searchTerm.toLowerCase()),
-                      ),
-              ),
+        complejos.filter((c) => {
+            const coincideDeporte =
+                !filtroDeporte ||
+                (c.deportes || []).some(
+                    (d) => d.toLowerCase() === filtroDeporte.toLowerCase(),
+                );
+
+            const q = searchTerm.trim().toLowerCase();
+            const coincideTexto =
+                !q ||
+                (c.nombre || "").toLowerCase().includes(q) ||
+                (c.domicilio || "").toLowerCase().includes(q) ||
+                (c.localidad || "").toLowerCase().includes(q) ||
+                (c.deportes || []).some((d) => d.toLowerCase().includes(q)) ||
+                (c.canchas || []).some((ca) =>
+                    (ca.tipo || "").toLowerCase().includes(q),
+                );
+
+            return coincideDeporte && coincideTexto;
+        }),
     );
 
     $effect(() => {
         const controller = new AbortController();
         cargandoPartidos = true;
+        cargandoComplejos = true;
 
         eventosApi
             .listarMios(controller.signal)
@@ -69,6 +62,21 @@
             })
             .finally(() => {
                 cargandoPartidos = false;
+            });
+
+        Promise.all([
+            catalogoApi.listarDeportes(controller.signal),
+            catalogoApi.listarComplejos("", controller.signal),
+        ])
+            .then(([resDep, resComp]) => {
+                deportesCatalogo = resDep?.data || [];
+                complejos = resComp?.data || [];
+            })
+            .catch(() => {
+                complejos = [];
+            })
+            .finally(() => {
+                cargandoComplejos = false;
             });
 
         return () => controller.abort();
@@ -83,6 +91,29 @@
             hour: "2-digit",
             minute: "2-digit",
         });
+    }
+
+    // Traduce deporte + capacidad por equipo al formato legible (ej: Futbol 7 o Padel 2 vs 2)
+    function formatearCapacidadCancha(deporte, capacidad) {
+        if (!capacidad) return deporte;
+        const dep = (deporte || "").toLowerCase();
+        if (dep.includes("futbol") || dep.includes("fútbol")) {
+            return `${deporte} ${capacidad}`;
+        }
+        if (
+            dep.includes("tenis") ||
+            dep.includes("padel") ||
+            dep.includes("pádel")
+        ) {
+            return capacidad === 1
+                ? `${deporte} Singles (1 vs 1)`
+                : `${deporte} Dobles (${capacidad} vs ${capacidad})`;
+        }
+        return `${deporte} (${capacidad} vs ${capacidad})`;
+    }
+
+    function toggleCanchas(id) {
+        complejoExpandidoId = complejoExpandidoId === id ? null : id;
     }
 </script>
 
@@ -329,10 +360,10 @@
             {/if}
         </section>
 
-        <!-- COMPLEJOS DESTACADOS (según sección #cards del Design System) -->
-        <section aria-label="Complejos destacados">
+        <!-- COMPLEJOS DESTACADOS CONECTADOS A FIRESTORE -->
+        <section aria-label="Complejos deportivos y canchas" class="space-y-4">
             <div
-                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4"
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"
             >
                 <h2
                     class="text-lg font-bold text-slate-800 flex items-center gap-2"
@@ -341,13 +372,15 @@
                         class="bi bi-buildings-fill text-blue-600"
                         aria-hidden="true"
                     ></i>
-                    <span>Complejos Destacados</span>
+                    <span
+                        >Complejos Deportivos ({complejosFiltrados.length})</span
+                    >
                 </h2>
 
-                <!-- Buscador de complejos -->
-                <div class="relative w-full sm:w-72">
+                <!-- Buscador de complejos o tipo de superficie -->
+                <div class="relative w-full sm:w-80">
                     <label for="buscar-complejo" class="sr-only">
-                        Buscar complejos o deportes
+                        Buscar complejos, deportes o superficie
                     </label>
                     <i
                         class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-blue-600 pointer-events-none"
@@ -357,25 +390,44 @@
                         id="buscar-complejo"
                         type="text"
                         bind:value={searchTerm}
-                        placeholder="Filtrar por nombre o deporte..."
+                        placeholder="Buscar complejo, zona o piso (ej: Hormigón)..."
                         class="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
             </div>
 
-            {#if complejosFiltrados.length === 0}
+            <!-- Filtro de Deportes desde la colección "deportes" de Firestore -->
+            <FiltroDeportes
+                titulo=""
+                textoTodos="Todos los deportes"
+                enTarjeta={false}
+                seleccionado={filtroDeporte}
+                onSeleccionar={(dep) => (filtroDeporte = dep)}
+            />
+
+            {#if cargandoComplejos}
+                <div class="pt-card empty-state">
+                    <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                    <p class="font-bold text-slate-700">
+                        Cargando complejos y canchas desde Firestore...
+                    </p>
+                </div>
+            {:else if complejosFiltrados.length === 0}
                 <div class="pt-card empty-state">
                     <i class="bi bi-search" aria-hidden="true"></i>
                     <h3 class="font-bold text-slate-800">Sin resultados</h3>
                     <p class="text-sm text-slate-500 mt-1 mb-3">
-                        No encontramos complejos que coincidan con "{searchTerm}".
+                        No encontramos complejos que coincidan con tu filtro.
                     </p>
                     <button
                         type="button"
-                        onclick={() => (searchTerm = "")}
+                        onclick={() => {
+                            searchTerm = "";
+                            filtroDeporte = "";
+                        }}
                         class="btn-pt btn-pt-outline btn-pt-sm"
                     >
-                        Limpiar filtro
+                        Limpiar filtros
                     </button>
                 </div>
             {:else}
@@ -384,13 +436,13 @@
                 >
                     {#each complejosFiltrados as comp (comp.id)}
                         <article
-                            class="pt-card hoverable p-4 flex flex-col justify-between"
+                            class="pt-card hoverable p-5 flex flex-col justify-between gap-4"
                         >
-                            <div>
-                                <div class="flex items-start gap-3 mb-3">
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-3">
                                     <div
-                                        class="w-13 h-13 rounded-xl text-white flex items-center justify-center text-2xl shrink-0"
-                                        style="background: {comp.gradiente}"
+                                        class="w-12 h-12 rounded-xl text-white flex items-center justify-center text-xl shrink-0"
+                                        style="background: linear-gradient(135deg, var(--pt-blue), var(--pt-blue-dark))"
                                         aria-hidden="true"
                                     >
                                         <i class="bi bi-buildings-fill"></i>
@@ -408,37 +460,105 @@
                                                 class="bi bi-geo-alt-fill text-red-500"
                                                 aria-hidden="true"
                                             ></i>
-                                            <span class="truncate"
-                                                >{comp.direccion}</span
+                                            <span class="truncate">
+                                                {comp.domicilio} · {comp.localidad},
+                                                {comp.provincia}
+                                            </span>
+                                        </p>
+                                        {#if comp.telefono}
+                                            <p
+                                                class="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5"
                                             >
-                                        </p>
-                                        <p
-                                            class="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5"
-                                        >
-                                            <i
-                                                class="bi bi-telephone-fill text-emerald-600"
-                                                aria-hidden="true"
-                                            ></i>
-                                            <span>{comp.telefono}</span>
-                                        </p>
+                                                <i
+                                                    class="bi bi-telephone-fill text-emerald-600"
+                                                    aria-hidden="true"
+                                                ></i>
+                                                <span>{comp.telefono}</span>
+                                            </p>
+                                        {/if}
                                     </div>
                                 </div>
 
-                                <div class="flex flex-wrap gap-1.5 mb-4">
+                                <div class="flex flex-wrap gap-1.5">
                                     {#each comp.deportes as dep (dep)}
                                         <span class="sport-tag">{dep}</span>
                                     {/each}
+                                    <span class="status-badge status-info">
+                                        {comp.canchas?.length || 0} canchas
+                                    </span>
                                 </div>
+
+                                <!-- Subcolección de Canchas desplegable -->
+                                {#if complejoExpandidoId === comp.id}
+                                    <div
+                                        class="pt-3 border-t border-slate-200 space-y-2"
+                                    >
+                                        <div
+                                            class="text-xs font-bold uppercase tracking-wider text-slate-500"
+                                        >
+                                            Canchas del complejo
+                                        </div>
+                                        {#if !comp.canchas || comp.canchas.length === 0}
+                                            <p class="text-xs text-slate-500">
+                                                No hay canchas cargadas en este
+                                                complejo.
+                                            </p>
+                                        {:else}
+                                            <div class="space-y-2">
+                                                {#each comp.canchas as ca (ca.id)}
+                                                    <div
+                                                        class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between gap-2"
+                                                    >
+                                                        <div>
+                                                            <div
+                                                                class="font-bold text-xs text-slate-900"
+                                                            >
+                                                                Cancha #{ca.numero}
+                                                                · {formatearCapacidadCancha(
+                                                                    ca.deporte,
+                                                                    ca.capacidad,
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                class="text-[11px] text-slate-600"
+                                                            >
+                                                                Superficie: <strong
+                                                                    >{ca.tipo ||
+                                                                        "Estándar"}</strong
+                                                                >
+                                                            </div>
+                                                        </div>
+                                                        <span
+                                                            class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0"
+                                                        >
+                                                            ${ca.precio?.toLocaleString(
+                                                                "es-AR",
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {/if}
                             </div>
 
                             <button
                                 type="button"
-                                onclick={() => onNavigate("reservas")}
+                                onclick={() => toggleCanchas(comp.id)}
                                 class="btn-pt btn-pt-soft w-full"
                             >
-                                <i class="bi bi-eye-fill" aria-hidden="true"
+                                <i
+                                    class="bi {complejoExpandidoId === comp.id
+                                        ? 'bi-chevron-up'
+                                        : 'bi-eye-fill'}"
+                                    aria-hidden="true"
                                 ></i>
-                                <span>Ver canchas disponibles</span>
+                                <span>
+                                    {complejoExpandidoId === comp.id
+                                        ? "Ocultar canchas"
+                                        : `Ver canchas disponibles (${comp.canchas?.length || 0})`}
+                                </span>
                             </button>
                         </article>
                     {/each}

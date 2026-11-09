@@ -1,13 +1,14 @@
 <script>
     import Navbar from "../../components/Navbar.svelte";
     import PageHeader from "../../components/PageHeader.svelte";
+    import FiltroDeportes from "../../components/FiltroDeportes.svelte";
     import { equiposApi } from "../../lib/api.js";
 
     let { onNavigate = () => {} } = $props();
 
     let nombreEquipo = $state("");
     let siglaEquipo = $state("");
-    let deporteEquipo = $state("Fútbol 5");
+    let deporteEquipo = $state("Futbol");
     let nivelEquipo = $state("Intermedio");
     let localidadEquipo = $state("");
     let buscandoRival = $state(true);
@@ -18,17 +19,8 @@
     let procesando = $state(false);
     let errorMsg = $state("");
 
-    const deportesLista = [
-        "Fútbol 5",
-        "Fútbol 7",
-        "Fútbol 8",
-        "Fútbol 11",
-        "Pádel",
-        "Tenis",
-        "Básquet",
-        "Vóley",
-    ];
     const nivelesLista = ["Recreativo", "Intermedio", "Competitivo"];
+
     const diasSemana = [
         "Lunes",
         "Martes",
@@ -134,22 +126,14 @@
                         />
                     </div>
 
-                    <div>
-                        <label
-                            for="eq-deporte"
-                            class="block text-sm font-semibold text-slate-700 mb-1"
-                        >
-                            Deporte Principal *
-                        </label>
-                        <select
-                            id="eq-deporte"
-                            bind:value={deporteEquipo}
-                            class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm"
-                        >
-                            {#each deportesLista as dep (dep)}
-                                <option value={dep}>{dep}</option>
-                            {/each}
-                        </select>
+                    <div class="md:col-span-3">
+                        <FiltroDeportes
+                            titulo="Deporte Principal *"
+                            mostrarTodos={false}
+                            enTarjeta={false}
+                            seleccionado={deporteEquipo}
+                            onSeleccionar={(dep) => (deporteEquipo = dep)}
+                        />
                     </div>
 
                     <div>

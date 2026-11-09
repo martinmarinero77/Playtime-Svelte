@@ -214,3 +214,12 @@ export const equiposApi = {
             body: JSON.stringify({ aceptar }),
         }),
 };
+
+// ==================== API DE CATÁLOGO (DEPORTES, COMPLEJOS Y CANCHAS) ====================
+export const catalogoApi = {
+    listarDeportes: (signal) => peticion("/deportes", { signal }),
+    listarComplejos: (deporte = "", signal) => {
+        const q = deporte ? `?deporte=${encodeURIComponent(deporte)}` : "";
+        return peticion(`/complejos-firestore${q}`, { signal });
+    },
+};

@@ -2,6 +2,7 @@
     import Navbar from "../../components/Navbar.svelte";
     import PageHeader from "../../components/PageHeader.svelte";
     import TarjetaEquipo from "../../components/equipos/TarjetaEquipo.svelte";
+    import FiltroDeportes from "../../components/FiltroDeportes.svelte";
     import { equiposApi, amistadesApi } from "../../lib/api.js";
 
     let { onNavigate = () => {}, initialTab = "mios" } = $props();
@@ -27,17 +28,6 @@
     let horaDesafio = $state("21:00");
     let ubicacionDesafio = $state("");
     let mensajeDesafio = $state("");
-
-    const deportesLista = [
-        "Fútbol 5",
-        "Fútbol 7",
-        "Fútbol 8",
-        "Fútbol 11",
-        "Pádel",
-        "Tenis",
-        "Básquet",
-        "Vóley",
-    ];
 
     let misEquiposComoCapitan = $derived(
         misEquipos.filter((e) => e.soyCapitan),
@@ -364,35 +354,11 @@
                 aria-label="Equipos buscando rival para desafiar"
                 class="space-y-4"
             >
-                <div class="pt-card p-4">
-                    <div
-                        class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2"
-                    >
-                        Filtrar rivales por deporte
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button
-                            type="button"
-                            onclick={() => (filtroDeporte = "")}
-                            class="filter-chip {filtroDeporte === ''
-                                ? 'active'
-                                : ''}"
-                        >
-                            Todos
-                        </button>
-                        {#each deportesLista as dep (dep)}
-                            <button
-                                type="button"
-                                onclick={() => (filtroDeporte = dep)}
-                                class="filter-chip {filtroDeporte === dep
-                                    ? 'active'
-                                    : ''}"
-                            >
-                                {dep}
-                            </button>
-                        {/each}
-                    </div>
-                </div>
+                <FiltroDeportes
+                    titulo="Filtrar rivales por deporte"
+                    seleccionado={filtroDeporte}
+                    onSeleccionar={(dep) => (filtroDeporte = dep)}
+                />
 
                 {#if rivalADesafiar}
                     <article

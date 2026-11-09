@@ -1,12 +1,13 @@
 <script>
     import Navbar from "../../components/Navbar.svelte";
     import PageHeader from "../../components/PageHeader.svelte";
+    import FiltroDeportes from "../../components/FiltroDeportes.svelte";
     import { eventosApi } from "../../lib/api.js";
 
     let { onNavigate = () => {} } = $props();
 
     let titulo = $state("");
-    let deporte = $state("Fútbol 5");
+    let deporte = $state("Futbol");
     let fecha = $state("");
     let hora = $state("20:00");
     let ubicacionTexto = $state("");
@@ -17,17 +18,6 @@
 
     let procesando = $state(false);
     let errorMsg = $state("");
-
-    const deportesDisponibles = [
-        "Fútbol 5",
-        "Fútbol 7",
-        "Fútbol 8",
-        "Fútbol 11",
-        "Pádel",
-        "Tenis",
-        "Básquet",
-        "Vóley",
-    ];
 
     async function handleCrearEvento(e) {
         e.preventDefault();
@@ -116,22 +106,17 @@
                         />
                     </div>
 
-                    <div>
-                        <label
-                            for="ev-deporte"
-                            class="block font-semibold text-sm text-slate-700 mb-1.5"
-                        >
-                            Deporte *
-                        </label>
-                        <select
-                            id="ev-deporte"
-                            bind:value={deporte}
-                            class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            {#each deportesDisponibles as dep (dep)}
-                                <option value={dep}>{dep}</option>
-                            {/each}
-                        </select>
+                    <div class="md:col-span-2">
+                        <FiltroDeportes
+                            titulo="Deporte y Modalidad *"
+                            mostrarTodos={false}
+                            enTarjeta={false}
+                            mostrarCapacidades={true}
+                            seleccionado={deporte}
+                            cupoActual={cupoMaximo}
+                            onSeleccionar={(dep) => (deporte = dep)}
+                            onSeleccionarCupo={(cupo) => (cupoMaximo = cupo)}
+                        />
                     </div>
 
                     <div>

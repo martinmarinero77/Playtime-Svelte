@@ -1,5 +1,6 @@
 <script>
     import Navbar from "../../components/Navbar.svelte";
+    import FiltroDeportes from "../../components/FiltroDeportes.svelte";
     import { eventosApi } from "../../lib/api.js";
 
     let { eventoId = "", onNavigate = () => {} } = $props();
@@ -10,7 +11,7 @@
 
     let form = $state({
         titulo: "",
-        deporte: "Fútbol 5",
+        deporte: "Futbol",
         fecha: "",
         hora: "",
         ubicacionTexto: "",
@@ -19,17 +20,6 @@
         modoIngreso: "LIBRE",
         descripcion: "",
     });
-
-    const deportesDisponibles = [
-        "Fútbol 5",
-        "Fútbol 7",
-        "Fútbol 8",
-        "Fútbol 11",
-        "Pádel",
-        "Tenis",
-        "Básquet",
-        "Vóley",
-    ];
 
     function aDatetimeLocal(iso) {
         if (!iso) return "";
@@ -56,7 +46,7 @@
             const dtLocal = aDatetimeLocal(ev.fechaHora); // formato "YYYY-MM-DDTHH:mm"
             form = {
                 titulo: ev.titulo || "",
-                deporte: ev.deporte || "Fútbol 5",
+                deporte: ev.deporte || "Futbol",
                 fecha: dtLocal ? dtLocal.slice(0, 10) : "",
                 hora: dtLocal ? dtLocal.slice(11, 16) : "20:00",
                 ubicacionTexto: ev.ubicacionTexto || "",
@@ -101,7 +91,7 @@
         <div class="flex items-center justify-between gap-2">
             <button
                 type="button"
-                onclick={() => onNavigate("partido-detalle", { eventoId })}
+                onclick={() => onNavigate("detalle-partido", { eventoId })}
                 class="btn-pt btn-pt-outline btn-pt-sm"
             >
                 <i class="bi bi-arrow-left" aria-hidden="true"></i>
@@ -145,10 +135,10 @@
                 </p>
             </div>
         {:else}
-            <section class="pt-card p-6 max-w-3xl">
+            <section class="pt-card p-6">
                 <form onsubmit={handleGuardarCambios} class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
+                        <div class="md:col-span-2">
                             <label
                                 for="edit-titulo"
                                 class="block text-sm font-semibold text-slate-700 mb-1"
@@ -164,22 +154,18 @@
                             />
                         </div>
 
-                        <div>
-                            <label
-                                for="edit-deporte"
-                                class="block text-sm font-semibold text-slate-700 mb-1"
-                            >
-                                Deporte
-                            </label>
-                            <select
-                                id="edit-deporte"
-                                bind:value={form.deporte}
-                                class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                {#each deportesDisponibles as dep (dep)}
-                                    <option value={dep}>{dep}</option>
-                                {/each}
-                            </select>
+                        <div class="md:col-span-2">
+                            <FiltroDeportes
+                                titulo="Deporte y Modalidad"
+                                mostrarTodos={false}
+                                enTarjeta={false}
+                                mostrarCapacidades={true}
+                                seleccionado={form.deporte}
+                                cupoActual={form.cupoMaximo}
+                                onSeleccionar={(dep) => (form.deporte = dep)}
+                                onSeleccionarCupo={(cupo) =>
+                                    (form.cupoMaximo = cupo)}
+                            />
                         </div>
 
                         <div>
@@ -311,7 +297,7 @@
                         <button
                             type="button"
                             onclick={() =>
-                                onNavigate("partido-detalle", { eventoId })}
+                                onNavigate("detalle-partido", { eventoId })}
                             class="btn-pt btn-pt-outline"
                         >
                             Cancelar

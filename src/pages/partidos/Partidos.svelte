@@ -2,6 +2,7 @@
     import Navbar from "../../components/Navbar.svelte";
     import PageHeader from "../../components/PageHeader.svelte";
     import TarjetaPartido from "../../components/partidos/TarjetaPartido.svelte";
+    import FiltroDeportes from "../../components/FiltroDeportes.svelte";
     import { eventosApi } from "../../lib/api.js";
 
     let { onNavigate = () => {}, initialTab = "mios" } = $props();
@@ -24,22 +25,11 @@
     // Formulario de Mi Disponibilidad (Días y Horarios)
     let mostrarFormDisponibilidad = $state(false);
     let disponibleParaJugar = $state(false);
-    let deportesSeleccionados = $state(["Fútbol 5"]);
+    let deportesSeleccionados = $state(["Futbol"]);
     let diasSeleccionados = $state(["Lunes", "Miércoles", "Viernes"]);
     let horaDesde = $state("19:00");
     let horaHasta = $state("23:00");
     let notaDisponibilidad = $state("");
-
-    const deportesLista = [
-        "Fútbol 5",
-        "Fútbol 7",
-        "Fútbol 8",
-        "Fútbol 11",
-        "Pádel",
-        "Tenis",
-        "Básquet",
-        "Vóley",
-    ];
 
     const diasSemana = [
         "Lunes",
@@ -449,35 +439,11 @@
             <!-- ==================== 2. PARTIDOS PÚBLICOS ==================== -->
         {:else if tabActiva === "publicos"}
             <section aria-label="Explorar partidos públicos" class="space-y-4">
-                <div class="pt-card p-4">
-                    <div
-                        class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5"
-                    >
-                        Filtrar por deporte
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button
-                            type="button"
-                            onclick={() => (filtroDeporte = "")}
-                            class="filter-chip {filtroDeporte === ''
-                                ? 'active'
-                                : ''}"
-                        >
-                            Todos
-                        </button>
-                        {#each deportesLista as dep (dep)}
-                            <button
-                                type="button"
-                                onclick={() => (filtroDeporte = dep)}
-                                class="filter-chip {filtroDeporte === dep
-                                    ? 'active'
-                                    : ''}"
-                            >
-                                {dep}
-                            </button>
-                        {/each}
-                    </div>
-                </div>
+                <FiltroDeportes
+                    titulo="Filtrar partidos por deporte"
+                    seleccionado={filtroDeporte}
+                    onSeleccionar={(dep) => (filtroDeporte = dep)}
+                />
 
                 {#if cargando}
                     <div class="pt-card empty-state">
@@ -601,49 +567,17 @@
                             onsubmit={handleGuardarDisponibilidad}
                             class="pt-4 border-t border-slate-200 space-y-4"
                         >
-                            <label
-                                class="flex items-center gap-2.5 cursor-pointer select-none"
-                            >
-                                <input
-                                    type="checkbox"
-                                    bind:checked={disponibleParaJugar}
-                                    class="w-4 h-4 accent-emerald-600 rounded"
-                                />
-                                <span
-                                    class="text-sm font-semibold text-slate-800"
-                                >
-                                    Quiero aparecer en la lista pública de
-                                    jugadores disponibles para ser invitado
-                                </span>
-                            </label>
-
-                            <div>
-                                <div
-                                    class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2"
-                                >
-                                    Deportes que juego
-                                </div>
-                                <div class="flex flex-wrap gap-2">
-                                    {#each deportesLista as dep (dep)}
-                                        <button
-                                            type="button"
-                                            onclick={() =>
-                                                (deportesSeleccionados =
-                                                    toggleItem(
-                                                        deportesSeleccionados,
-                                                        dep,
-                                                    ))}
-                                            class="filter-chip {deportesSeleccionados.includes(
-                                                dep,
-                                            )
-                                                ? 'active'
-                                                : ''}"
-                                        >
-                                            {dep}
-                                        </button>
-                                    {/each}
-                                </div>
-                            </div>
+                            <FiltroDeportes
+                                titulo="Deportes que juego"
+                                multiple={true}
+                                enTarjeta={false}
+                                seleccionados={deportesSeleccionados}
+                                onToggle={(dep) =>
+                                    (deportesSeleccionados = toggleItem(
+                                        deportesSeleccionados,
+                                        dep,
+                                    ))}
+                            />
 
                             <div>
                                 <div
@@ -739,6 +673,11 @@
                     {/if}
                 </article>
 
+                <FiltroDeportes
+                    titulo="Filtrar jugadores disponibles por deporte"
+                    seleccionado={filtroDeporte}
+                    onSeleccionar={(dep) => (filtroDeporte = dep)}
+                />
                 <!-- Lista pública de jugadores disponibles -->
                 {#if cargando}
                     <div class="pt-card empty-state">
