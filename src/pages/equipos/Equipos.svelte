@@ -94,25 +94,31 @@
 
     async function handleToggleBuscandoRival(eq) {
         errorMsg = "";
-        procesando = true;
+        const estadoAnterior = eq.buscandoRival;
+        const nuevoEstado = !estadoAnterior;
+
+        // 1. Actualización optimista instantánea en memoria (inmutable con .map - Regla D)
+        misEquipos = misEquipos.map((item) =>
+            item.id === eq.id ? { ...item, buscandoRival: nuevoEstado } : item,
+        );
+
         try {
+            // 2. Guardamos en el backend en segundo plano sin recargar la vista
             await equiposApi.actualizarDisponibilidad(eq.id, {
-                buscandoRival: !eq.buscandoRival,
+                buscandoRival: nuevoEstado,
                 nivel: eq.nivel,
                 diasDisponibles: eq.diasDisponibles,
                 horaDesde: eq.horaDesde,
                 horaHasta: eq.horaHasta,
             });
-            mostrarExito(
-                !eq.buscandoRival
-                    ? `${eq.nombre} ahora aparece buscando rival`
-                    : `${eq.nombre} oculto de la lista de rivales`,
-            );
-            await cargarDatos(tabActiva, filtroDeporte);
         } catch (err) {
+            // 3. Si falla la red, revertimos al estado anterior
+            misEquipos = misEquipos.map((item) =>
+                item.id === eq.id
+                    ? { ...item, buscandoRival: estadoAnterior }
+                    : item,
+            );
             errorMsg = err.message;
-        } finally {
-            procesando = false;
         }
     }
 

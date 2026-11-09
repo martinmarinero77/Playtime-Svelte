@@ -147,6 +147,36 @@
         }
     }
 
+    async function handleToggleDisponibilidadRapida() {
+        errorMsg = "";
+        const estadoAnterior = disponibleParaJugar;
+        const nuevoEstado = !estadoAnterior;
+
+        // 1. Actualización optimista instantánea
+        disponibleParaJugar = nuevoEstado;
+
+        try {
+            // 2. Guardamos en segundo plano en el backend
+            await eventosApi.actualizarMiDisponibilidad({
+                disponibleParaJugar: nuevoEstado,
+                deportesDisponibles: deportesSeleccionados.join(", "),
+                diasDisponibles: diasSeleccionados.join(", "),
+                horaDesde,
+                horaHasta,
+                notaDisponibilidad,
+            });
+
+            // Actualizamos la lista de disponibles en segundo plano sin poner cargando = true
+            const resDisp =
+                await eventosApi.listarJugadoresDisponibles(filtroDeporte);
+            jugadoresDisponibles = resDisp.data || [];
+        } catch (err) {
+            // 3. Si falla la red, revertimos el interruptor
+            disponibleParaJugar = estadoAnterior;
+            errorMsg = err.message;
+        }
+    }
+
     async function handleGuardarDisponibilidad(e) {
         e.preventDefault();
         errorMsg = "";
@@ -163,7 +193,10 @@
             const res = await eventosApi.actualizarMiDisponibilidad(payload);
             mostrarExito(res.message || "Disponibilidad actualizada");
             mostrarFormDisponibilidad = false;
-            cargarTab("disponibles", filtroDeporte);
+
+            const resDisp =
+                await eventosApi.listarJugadoresDisponibles(filtroDeporte);
+            jugadoresDisponibles = resDisp.data || [];
         } catch (err) {
             errorMsg = err.message;
         } finally {
@@ -497,7 +530,7 @@
             >
                 <!-- Tarjeta de Mi Estado de Disponibilidad -->
                 <article
-                    class="pt-card p-5 border-l-4 {disponibleParaJugar
+                    class="pt-card p-5 border-l-4 transition-colors duration-200 motion-reduce:transition-none {disponibleParaJugar
                         ? 'border-l-emerald-500'
                         : 'border-l-slate-300'} space-y-4"
                 >
@@ -505,20 +538,9 @@
                         class="flex flex-wrap items-center justify-between gap-3"
                     >
                         <div>
-                            <div class="flex items-center gap-2">
-                                <h2 class="text-base font-bold text-slate-900">
-                                    Mi Disponibilidad Pública para ser Invitado
-                                </h2>
-                                <span
-                                    class="status-badge {disponibleParaJugar
-                                        ? 'status-accepted'
-                                        : 'status-pending'}"
-                                >
-                                    {disponibleParaJugar
-                                        ? "Visible en la lista"
-                                        : "Oculto"}
-                                </span>
-                            </div>
+                            <h2 class="text-base font-bold text-slate-900">
+                                Mi Disponibilidad Pública para ser Invitado
+                            </h2>
                             <p class="text-xs text-slate-600 mt-1">
                                 Indicá qué deportes, días de la semana y entre
                                 qué horarios estás libre para que otros
@@ -526,20 +548,52 @@
                             </p>
                         </div>
 
-                        <button
-                            type="button"
-                            onclick={() =>
-                                (mostrarFormDisponibilidad =
-                                    !mostrarFormDisponibilidad)}
-                            class="btn-pt btn-pt-soft btn-pt-sm"
-                        >
-                            <i class="bi bi-sliders" aria-hidden="true"></i>
-                            <span>
-                                {mostrarFormDisponibilidad
-                                    ? "Cerrar Configuración"
-                                    : "Configurar Días y Horarios"}
-                            </span>
-                        </button>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <!-- Interruptor instantáneo (role="switch") -->
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={disponibleParaJugar}
+                                aria-label="Activar u ocultar mi disponibilidad pública para jugar"
+                                onclick={handleToggleDisponibilidadRapida}
+                                class="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full cursor-pointer border transition-colors duration-200 motion-reduce:transition-none {disponibleParaJugar
+                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                                    : 'bg-slate-100 border-slate-300 text-slate-700'}"
+                            >
+                                <span class="text-xs font-bold select-none">
+                                    {disponibleParaJugar
+                                        ? "Disponible"
+                                        : "Oculto"}
+                                </span>
+                                <span
+                                    aria-hidden="true"
+                                    class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 motion-reduce:transition-none {disponibleParaJugar
+                                        ? 'bg-emerald-500'
+                                        : 'bg-slate-400'}"
+                                >
+                                    <span
+                                        class="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 motion-reduce:transition-none {disponibleParaJugar
+                                            ? 'translate-x-4'
+                                            : 'translate-x-1'}"
+                                    ></span>
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onclick={() =>
+                                    (mostrarFormDisponibilidad =
+                                        !mostrarFormDisponibilidad)}
+                                class="btn-pt btn-pt-soft btn-pt-sm"
+                            >
+                                <i class="bi bi-sliders" aria-hidden="true"></i>
+                                <span>
+                                    {mostrarFormDisponibilidad
+                                        ? "Cerrar Configuración"
+                                        : "Configurar Días y Horarios"}
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
                     {#if mostrarFormDisponibilidad}
