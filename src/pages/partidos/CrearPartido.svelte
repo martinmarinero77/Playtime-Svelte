@@ -19,6 +19,22 @@
     let procesando = $state(false);
     let errorMsg = $state("");
 
+    function obtenerFechaLocalHoy() {
+        const ahora = new Date();
+        const offsetMs = ahora.getTimezoneOffset() * 60000;
+        return new Date(ahora.getTime() - offsetMs).toISOString().slice(0, 10);
+    }
+
+    function obtenerHoraLocalActual() {
+        return new Date().toTimeString().slice(0, 5); // "HH:mm"
+    }
+
+    const fechaMinima = obtenerFechaLocalHoy();
+
+    let horaMinima = $derived(
+        fecha === fechaMinima ? obtenerHoraLocalActual() : undefined,
+    );
+
     async function handleCrearEvento(e) {
         e.preventDefault();
         errorMsg = "";
@@ -28,9 +44,16 @@
             return;
         }
 
+        const fechaHoraObj = new Date(`${fecha}T${hora}`);
+        if (fechaHoraObj <= new Date()) {
+            errorMsg =
+                "No podés crear un partido en una fecha u horario que ya pasó.";
+            return;
+        }
+
         procesando = true;
         try {
-            const fechaHoraIso = new Date(`${fecha}T${hora}`).toISOString();
+            const fechaHoraIso = fechaHoraObj.toISOString();
             const res = await eventosApi.crear({
                 titulo: titulo.trim(),
                 descripcion: descripcion.trim() || null,
@@ -147,6 +170,7 @@
                         <input
                             id="ev-fecha"
                             type="date"
+                            min={fechaMinima}
                             bind:value={fecha}
                             required
                             class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -163,6 +187,7 @@
                         <input
                             id="ev-hora"
                             type="time"
+                            min={horaMinima}
                             bind:value={hora}
                             required
                             class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
