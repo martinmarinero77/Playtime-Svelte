@@ -76,11 +76,14 @@ async function peticion(ruta, opciones = {}) {
     }
 
     if (!res.ok || (json && json.success === false)) {
-        const msg =
-            json?.message ||
-            (Array.isArray(json?.errors) ? json.errors.join(", ") : null) ||
-            `Error HTTP ${res.status}`;
-        throw new Error(msg);
+        // ASP.NET puede devolver errors como array o como objeto { Campo: [mensajes] }
+        const errores = json?.errors;
+        const detalle = Array.isArray(errores)
+            ? errores.join(", ")
+            : errores && typeof errores === "object"
+                ? Object.values(errores).flat().join(", ")
+                : null;
+        throw new Error(json?.message || detalle || `Error HTTP ${res.status}`);
     }
 
     return json ?? { success: true, data: null };
@@ -223,3 +226,24 @@ export const catalogoApi = {
         return peticion(`/complejos-firestore${q}`, { signal });
     },
 };
+
+// ==================== API DE AUTENTICACIÓN ====================
+export const authApi = {
+    login: (credenciales) =>
+        peticion("/Auth/login", {
+            method: "POST",
+            body: JSON.stringify(credenciales),
+        }),
+    registrar: (dto) =>
+        peticion("/Auth/register", {
+            method: "POST",
+            body: JSON.stringify(dto),
+        }),
+};
+
+// Guarda la sesión en localStorage ("recordarme") o en sessionStorage
+export function guardarSesion({ token, usuario }, recordar) {
+    const storage = recordar ? localStorage : sessionStorage;
+    storage.setItem("playtime_token", token);
+    storage.setItem("playtime_user", JSON.stringify(usuario));
+}

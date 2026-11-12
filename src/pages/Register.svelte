@@ -1,465 +1,395 @@
 <script>
-    export let onNavigate = () => {};
+    import AuthLayout from "../components/auth/AuthLayout.svelte";
+    import CampoPassword from "../components/auth/CampoPassword.svelte";
+    import { authApi } from "../lib/api.js";
 
-    // Estados del formulario
-    let nombre = "";
-    let apellido = "";
-    let email = "";
-    let telefono = "";
-    let direccion = "";
-    let localidad = "";
-    let provincia = "";
-    let password = "";
-    let confirmPassword = "";
-    let termsAccepted = false;
+    let { onNavigate = () => {} } = $props();
 
-    let showPassword = false;
-    let loading = false;
-    let errorMessage = "";
-    let successMessage = "";
+    let form = $state({
+        nombre: "",
+        apellido: "",
+        email: "",
+        telefono: "",
+        direccion: "",
+        localidad: "",
+        provincia: "",
+    });
+    let password = $state("");
+    let confirmPassword = $state("");
+    let aceptaDatos = $state(false);
 
-    function togglePassword() {
-        showPassword = !showPassword;
+    let intentoEnviar = $state(false);
+    let cargando = $state(false);
+    let errorMsg = $state("");
+    let registrado = $state(false);
+
+    // R-08: todo esto se DERIVA de password; no hay estado duplicado
+    const NIVELES = [
+        { texto: "Escribí una contraseña", color: "bg-slate-200" },
+        { texto: "Muy corta", color: "bg-red-500" },
+        { texto: "Aceptable", color: "bg-amber-500" },
+        { texto: "Buena", color: "bg-blue-500" },
+        { texto: "Muy segura", color: "bg-emerald-500" },
+    ];
+
+    let fuerza = $derived.by(() => {
+        if (!password) return 0;
+        if (password.length < 6) return 1;
+        let puntos = 2;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) puntos++;
+        if (/\d/.test(password) || /[^A-Za-z0-9]/.test(password)) puntos++;
+        return puntos;
+    });
+    let nivel = $derived(NIVELES[fuerza]);
+    let coinciden = $derived(
+        confirmPassword.length > 0 && password === confirmPassword,
+    );
+    let errorConfirmacion = $derived(confirmPassword.length > 0 && !coinciden);
+
+    async function handleRegister(e) {
+        e.preventDefault();
+        errorMsg = "";
+        intentoEnviar = true;
+
+        if (
+            !form.nombre.trim() ||
+            !form.apellido.trim() ||
+            !form.email.trim()
+        ) {
+            errorMsg = "Completá tu nombre, apellido y correo electrónico.";
+            return;
+        }
+        if (password.length < 6) {
+            errorMsg = "La contraseña debe tener al menos 6 caracteres.";
+            return;
+        }
+        if (!coinciden) {
+            errorMsg = "Las contraseñas no coinciden.";
+            return;
+        }
+        if (!aceptaDatos) {
+            errorMsg =
+                "Necesitamos tu consentimiento para usar tus datos en la app.";
+            return;
+        }
+
+        cargando = true;
+        try {
+            await authApi.registrar({
+                nombre: form.nombre.trim(),
+                apellido: form.apellido.trim(),
+                email: form.email.trim(),
+                password,
+                telefono: form.telefono.trim() || null,
+                direccion: form.direccion.trim() || null,
+                localidad: form.localidad.trim() || null,
+                provincia: form.provincia.trim() || null,
+            });
+            registrado = true;
+        } catch (err) {
+            errorMsg =
+                err instanceof TypeError
+                    ? "No se pudo conectar con el servidor. Verificá que PlayTimeAPI (.NET) esté encendida."
+                    : err.message;
+        } finally {
+            cargando = false;
+        }
     }
 
-    async function handleRegister(event) {
-        event.preventDefault();
-        errorMessage = "";
-        successMessage = "";
-
-        // Validaciones
-        if (!nombre.trim() || !apellido.trim() || !email.trim() || !password) {
-            errorMessage = "Por favor, completá los campos obligatorios (*).";
-            return;
-        }
-
-        if (password.length < 6) {
-            errorMessage = "La contraseña debe tener al menos 6 caracteres.";
-            return;
-        }
-
-        if (password !== confirmPassword) {
-            errorMessage = "Las contraseñas no coinciden.";
-            return;
-        }
-
-        if (!termsAccepted) {
-            errorMessage =
-                "Debés aceptar los términos y condiciones para continuar.";
-            return;
-        }
-
-        loading = true;
-
-        try {
-            const response = await fetch(
-                "http://localhost:5254/api/Auth/register",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        nombre,
-                        apellido,
-                        email,
-                        password,
-                        telefono: telefono || null,
-                        direccion: direccion || null,
-                        localidad: localidad || null,
-                        provincia: provincia || null,
-                    }),
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                let errorMsg = data.message || "Error al registrar la cuenta.";
-                if (data.errors) {
-                    if (Array.isArray(data.errors)) {
-                        errorMsg = data.errors.join(", ");
-                    } else if (typeof data.errors === "object") {
-                        errorMsg = Object.values(data.errors).flat().join(", ");
-                    }
-                }
-                throw new Error(errorMsg);
-            }
-
-            successMessage =
-                "¡Cuenta creada con éxito! Redirigiendo al inicio de sesión...";
-
-            setTimeout(() => {
-                onNavigate("login");
-            }, 1500);
-        } catch (err) {
-            if (err.name === "TypeError" && err.message.includes("fetch")) {
-                errorMessage =
-                    "No se pudo conectar con el servidor (.NET). Verificá que la API esté encendida.";
-            } else {
-                errorMessage = err.message;
-            }
-        } finally {
-            loading = false;
-        }
+    function irALogin(e) {
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+        e.preventDefault();
+        onNavigate("login");
     }
 </script>
 
-<main
-    class="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 flex items-center justify-center p-4 py-8"
->
-    <div class="w-full max-w-2xl">
-        <!-- Botón Volver -->
-        <button
-            type="button"
-            onclick={() => onNavigate("welcome")}
-            class="mb-4 inline-flex items-center gap-2 text-blue-200 hover:text-white transition duration-200 text-sm font-medium cursor-pointer"
+<!-- Snippet reutilizable para los campos de texto (Apunte Svelte §5.3) -->
+{#snippet campo(
+    clave,
+    etiqueta,
+    {
+        tipo = "text",
+        icono = "",
+        autocomplete = "off",
+        placeholder = "",
+        obligatorio = false,
+    } = {},
+)}
+    <div>
+        <label
+            for="reg-{clave}"
+            class="block text-sm font-semibold text-slate-700 mb-1.5"
         >
-            <i class="bi bi-arrow-left" aria-hidden="true"></i>
-            <span>Volver a la portada</span>
-        </button>
-
-        <!-- Tarjeta Principal de Registro -->
-        <article
-            class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 text-slate-800"
-        >
-            <!-- Cabecera -->
-            <header
-                class="bg-gradient-to-br from-blue-600 to-blue-800 p-6 sm:p-8 text-center text-white relative"
-            >
-                <div
-                    class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 shadow-md"
+            {etiqueta}{#if obligatorio}<span
+                    class="text-red-700"
                     aria-hidden="true"
                 >
-                    <span class="text-3xl">⚽</span>
-                </div>
-                <h1
-                    class="text-2xl sm:text-3xl font-extrabold tracking-wide mb-1"
-                >
-                    Crear Cuenta
-                </h1>
-                <p class="text-blue-100/90 text-sm font-light">
-                    Unite a PlayTime y reservá tus canchas favoritas
-                </p>
-            </header>
+                    *</span
+                >{/if}
+        </label>
+        <div class="relative">
+            {#if icono}
+                <i
+                    class="bi {icono} absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    aria-hidden="true"
+                ></i>
+            {/if}
+            <input
+                id="reg-{clave}"
+                type={tipo}
+                bind:value={form[clave]}
+                required={obligatorio}
+                {autocomplete}
+                {placeholder}
+                aria-invalid={obligatorio &&
+                    intentoEnviar &&
+                    !form[clave].trim()}
+                class="pt-input {icono ? 'pl-10' : ''}"
+            />
+        </div>
+    </div>
+{/snippet}
 
-            <!-- Cuerpo del Formulario -->
-            <div class="p-6 sm:p-8">
-                <!-- Alertas -->
-                {#if errorMessage}
-                    <div
-                        class="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3"
-                        role="alert"
-                    >
-                        <i
-                            class="bi bi-exclamation-triangle-fill text-red-500 text-base shrink-0 mt-0.5"
-                            aria-hidden="true"
-                        ></i>
-                        <div>{errorMessage}</div>
-                    </div>
-                {/if}
-
-                {#if successMessage}
-                    <div
-                        class="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-start gap-3"
-                        role="alert"
-                    >
-                        <i
-                            class="bi bi-check-circle-fill text-emerald-500 text-base shrink-0 mt-0.5"
-                            aria-hidden="true"
-                        ></i>
-                        <div>{successMessage}</div>
-                    </div>
-                {/if}
-
-                <form onsubmit={handleRegister} novalidate class="space-y-6">
-                    <!-- SECCIÓN 1: DATOS PERSONALES -->
-                    <div>
-                        <h2
-                            class="text-sm font-bold uppercase tracking-wider text-blue-700 border-b border-slate-200 pb-2 mb-4 flex items-center gap-2"
-                        >
-                            <i class="bi bi-person-circle"></i>
-                            <span>Información Personal</span>
-                        </h2>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Nombre -->
-                            <div>
-                                <label
-                                    for="nombre"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Nombre *</label
-                                >
-                                <div class="relative flex items-center">
-                                    <span
-                                        class="absolute left-3 text-blue-600 pointer-events-none"
-                                        ><i class="bi bi-person"></i></span
-                                    >
-                                    <input
-                                        type="text"
-                                        id="nombre"
-                                        bind:value={nombre}
-                                        required
-                                        placeholder="Juan"
-                                        class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                    />
-                                </div>
-                            </div>
-
-                            <!-- Apellido -->
-                            <div>
-                                <label
-                                    for="apellido"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Apellido *</label
-                                >
-                                <div class="relative flex items-center">
-                                    <span
-                                        class="absolute left-3 text-blue-600 pointer-events-none"
-                                        ><i class="bi bi-person"></i></span
-                                    >
-                                    <input
-                                        type="text"
-                                        id="apellido"
-                                        bind:value={apellido}
-                                        required
-                                        placeholder="Pérez"
-                                        class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                    />
-                                </div>
-                            </div>
-
-                            <!-- Email -->
-                            <div>
-                                <label
-                                    for="email"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Email *</label
-                                >
-                                <div class="relative flex items-center">
-                                    <span
-                                        class="absolute left-3 text-blue-600 pointer-events-none"
-                                        ><i class="bi bi-envelope"></i></span
-                                    >
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        bind:value={email}
-                                        required
-                                        placeholder="juan@email.com"
-                                        class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                    />
-                                </div>
-                            </div>
-
-                            <!-- Teléfono -->
-                            <div>
-                                <label
-                                    for="telefono"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Teléfono</label
-                                >
-                                <div class="relative flex items-center">
-                                    <span
-                                        class="absolute left-3 text-blue-600 pointer-events-none"
-                                        ><i class="bi bi-telephone"></i></span
-                                    >
-                                    <input
-                                        type="tel"
-                                        id="telefono"
-                                        bind:value={telefono}
-                                        placeholder="+54 9 11 1234-5678"
-                                        class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SECCIÓN 2: UBICACIÓN (OPCIONAL) -->
-                    <div>
-                        <h2
-                            class="text-sm font-bold uppercase tracking-wider text-blue-700 border-b border-slate-200 pb-2 mb-4 flex items-center gap-2"
-                        >
-                            <i class="bi bi-geo-alt"></i>
-                            <span>Ubicación (Opcional)</span>
-                        </h2>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label
-                                    for="direccion"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Dirección</label
-                                >
-                                <input
-                                    type="text"
-                                    id="direccion"
-                                    bind:value={direccion}
-                                    placeholder="Av. Siempre Viva 123"
-                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    for="localidad"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Localidad</label
-                                >
-                                <input
-                                    type="text"
-                                    id="localidad"
-                                    bind:value={localidad}
-                                    placeholder="Capital"
-                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    for="provincia"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Provincia</label
-                                >
-                                <input
-                                    type="text"
-                                    id="provincia"
-                                    bind:value={provincia}
-                                    placeholder="Mendoza"
-                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SECCIÓN 3: SEGURIDAD -->
-                    <div>
-                        <h2
-                            class="text-sm font-bold uppercase tracking-wider text-blue-700 border-b border-slate-200 pb-2 mb-4 flex items-center gap-2"
-                        >
-                            <i class="bi bi-shield-lock"></i>
-                            <span>Seguridad</span>
-                        </h2>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Contraseña -->
-                            <div>
-                                <label
-                                    for="password"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Contraseña * (mín. 6)</label
-                                >
-                                <div class="relative flex items-center">
-                                    <span
-                                        class="absolute left-3 text-blue-600 pointer-events-none"
-                                        ><i class="bi bi-lock"></i></span
-                                    >
-                                    <input
-                                        type={showPassword
-                                            ? "text"
-                                            : "password"}
-                                        id="password"
-                                        bind:value={password}
-                                        required
-                                        minlength="6"
-                                        placeholder="••••••••"
-                                        class="w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                    />
-                                    <button
-                                        type="button"
-                                        onclick={togglePassword}
-                                        aria-label={showPassword
-                                            ? "Ocultar contraseña"
-                                            : "Mostrar contraseña"}
-                                        class="absolute right-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                                    >
-                                        <i
-                                            class="bi {showPassword
-                                                ? 'bi-eye'
-                                                : 'bi-eye-slash'}"
-                                        ></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Confirmar Contraseña -->
-                            <div>
-                                <label
-                                    for="confirmPassword"
-                                    class="block text-xs font-semibold text-slate-700 mb-1"
-                                    >Confirmar Contraseña *</label
-                                >
-                                <div class="relative flex items-center">
-                                    <span
-                                        class="absolute left-3 text-blue-600 pointer-events-none"
-                                        ><i class="bi bi-lock-fill"></i></span
-                                    >
-                                    <input
-                                        type={showPassword
-                                            ? "text"
-                                            : "password"}
-                                        id="confirmPassword"
-                                        bind:value={confirmPassword}
-                                        required
-                                        placeholder="••••••••"
-                                        class="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Términos y condiciones -->
-                    <div class="pt-2">
-                        <label
-                            class="flex items-start gap-2.5 text-xs sm:text-sm text-slate-600 cursor-pointer select-none"
-                        >
-                            <input
-                                type="checkbox"
-                                bind:checked={termsAccepted}
-                                class="w-4 h-4 mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                            />
-                            <span
-                                >Acepto los <a
-                                    href="#terminos"
-                                    class="text-blue-600 font-semibold hover:underline"
-                                    >Términos del Servicio</a
-                                > y las políticas de privacidad.</span
-                            >
-                        </label>
-                    </div>
-
-                    <!-- Botón de Registro -->
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 cursor-pointer transition duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                        {#if loading}
-                            <span
-                                class="inline-block animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"
-                                aria-hidden="true"
-                            ></span>
-                            <span>Registrando cuenta...</span>
-                        {:else}
-                            <i
-                                class="bi bi-person-check-fill"
-                                aria-hidden="true"
-                            ></i>
-                            <span>Crear Cuenta</span>
-                        {/if}
-                    </button>
-                </form>
-
-                <!-- Enlace a Login -->
-                <div class="text-center mt-6 text-sm text-slate-600">
-                    ¿Ya tenés una cuenta?
-                    <button
-                        type="button"
-                        onclick={() => onNavigate("login")}
-                        class="text-blue-600 hover:text-blue-800 font-semibold hover:underline cursor-pointer ml-1 transition"
-                    >
-                        Iniciá sesión aquí
-                    </button>
+<AuthLayout
+    titulo="Crear cuenta"
+    subtitulo="Sumate a la comunidad y empezá a jugar."
+    mensajePanel="Armá tu partido en minutos"
+    ancho="max-w-xl"
+    {onNavigate}
+>
+    {#if registrado}
+        <div class="text-center py-4" role="status">
+            <span
+                class="mx-auto w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-3xl"
+                aria-hidden="true"
+            >
+                <i class="bi bi-check-lg"></i>
+            </span>
+            <h2 class="mt-4 text-xl font-bold text-slate-900">
+                ¡Cuenta creada!
+            </h2>
+            <p class="mt-1 text-slate-600">
+                Ya podés iniciar sesión con <strong>{form.email}</strong>.
+            </p>
+            <a
+                href="/login"
+                onclick={irALogin}
+                class="btn-pt btn-pt-primary w-full mt-6"
+            >
+                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+                <span>Ir a iniciar sesión</span>
+            </a>
+        </div>
+    {:else}
+        {#if errorMsg}
+            <div
+                id="reg-error"
+                class="pt-alert pt-alert-danger mb-5"
+                role="alert"
+            >
+                <div class="flex items-start gap-2">
+                    <i
+                        class="bi bi-exclamation-triangle-fill mt-0.5"
+                        aria-hidden="true"
+                    ></i>
+                    <span>{errorMsg}</span>
                 </div>
             </div>
-        </article>
-    </div>
-</main>
+        {/if}
+
+        <form
+            onsubmit={handleRegister}
+            novalidate
+            aria-busy={cargando}
+            aria-describedby={errorMsg ? "reg-error" : undefined}
+            class="space-y-6"
+        >
+            <p class="text-xs text-slate-600">
+                Los campos marcados con * son obligatorios.
+            </p>
+
+            <fieldset class="space-y-4">
+                <legend
+                    class="text-sm font-bold uppercase tracking-wider text-blue-700 mb-3"
+                >
+                    Datos personales
+                </legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {@render campo("nombre", "Nombre", {
+                        icono: "bi-person",
+                        autocomplete: "given-name",
+                        placeholder: "Juan",
+                        obligatorio: true,
+                    })}
+                    {@render campo("apellido", "Apellido", {
+                        icono: "bi-person",
+                        autocomplete: "family-name",
+                        placeholder: "Pérez",
+                        obligatorio: true,
+                    })}
+                    {@render campo("email", "Correo electrónico", {
+                        tipo: "email",
+                        icono: "bi-envelope",
+                        autocomplete: "email",
+                        placeholder: "tu@email.com",
+                        obligatorio: true,
+                    })}
+                    {@render campo("telefono", "Teléfono", {
+                        tipo: "tel",
+                        icono: "bi-telephone",
+                        autocomplete: "tel",
+                        placeholder: "+54 9 266 123-4567",
+                    })}
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-4">
+                <legend
+                    class="text-sm font-bold uppercase tracking-wider text-blue-700 mb-3"
+                >
+                    Seguridad
+                </legend>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <CampoPassword
+                            id="reg-password"
+                            label="Contraseña *"
+                            bind:value={password}
+                            autocomplete="new-password"
+                            invalido={intentoEnviar && password.length < 6}
+                            descripcionId="reg-password-ayuda"
+                        />
+                        <div class="flex gap-1" aria-hidden="true">
+                            {#each [1, 2, 3, 4] as n (n)}
+                                <span
+                                    class="h-1.5 flex-1 rounded-full transition-colors {n <=
+                                    fuerza
+                                        ? nivel.color
+                                        : 'bg-slate-200'}"
+                                ></span>
+                            {/each}
+                        </div>
+                        <p
+                            id="reg-password-ayuda"
+                            class="text-xs text-slate-600"
+                            aria-live="polite"
+                        >
+                            Seguridad: <strong>{nivel.texto}</strong> · mínimo 6
+                            caracteres
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <CampoPassword
+                            id="reg-confirm"
+                            label="Repetir contraseña *"
+                            bind:value={confirmPassword}
+                            autocomplete="new-password"
+                            invalido={errorConfirmacion}
+                            descripcionId="reg-confirm-ayuda"
+                        />
+                        <p
+                            id="reg-confirm-ayuda"
+                            class="text-xs"
+                            aria-live="polite"
+                        >
+                            {#if errorConfirmacion}
+                                <span class="text-red-700">
+                                    <i
+                                        class="bi bi-x-circle-fill"
+                                        aria-hidden="true"
+                                    ></i> Las contraseñas no coinciden
+                                </span>
+                            {:else if coinciden}
+                                <span class="text-emerald-700">
+                                    <i
+                                        class="bi bi-check-circle-fill"
+                                        aria-hidden="true"
+                                    ></i> Las contraseñas coinciden
+                                </span>
+                            {/if}
+                        </p>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- <details> nativo: plegable y accesible sin JavaScript -->
+            <details class="group rounded-xl border border-slate-200">
+                <summary
+                    class="flex items-center justify-between gap-2 px-4 py-3 cursor-pointer rounded-xl text-sm font-semibold text-slate-700 list-none"
+                >
+                    <span
+                        ><i
+                            class="bi bi-geo-alt text-blue-700"
+                            aria-hidden="true"
+                        ></i> Agregar ubicación (opcional)</span
+                    >
+                    <i
+                        class="bi bi-chevron-down transition-transform group-open:rotate-180"
+                        aria-hidden="true"
+                    ></i>
+                </summary>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4 pb-4">
+                    {@render campo("direccion", "Dirección", {
+                        autocomplete: "street-address",
+                        placeholder: "Av. Illia 123",
+                    })}
+                    {@render campo("localidad", "Localidad", {
+                        autocomplete: "address-level2",
+                        placeholder: "San Luis",
+                    })}
+                    {@render campo("provincia", "Provincia", {
+                        autocomplete: "address-level1",
+                        placeholder: "San Luis",
+                    })}
+                </div>
+            </details>
+
+            <label
+                class="flex items-start gap-2.5 text-sm text-slate-700 cursor-pointer select-none"
+            >
+                <input
+                    type="checkbox"
+                    bind:checked={aceptaDatos}
+                    required
+                    class="w-4 h-4 mt-0.5 accent-blue-600 cursor-pointer"
+                />
+                <span>
+                    Acepto que PlayTime use mis datos (nombre, correo y
+                    teléfono) solo para organizar partidos y conectarme con
+                    otros jugadores.
+                </span>
+            </label>
+
+            <button
+                type="submit"
+                disabled={cargando}
+                class="btn-pt btn-pt-primary w-full"
+            >
+                {#if cargando}
+                    <span
+                        class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+                        aria-hidden="true"
+                    ></span>
+                    <span>Creando cuenta...</span>
+                {:else}
+                    <i class="bi bi-person-check-fill" aria-hidden="true"></i>
+                    <span>Crear cuenta</span>
+                {/if}
+            </button>
+        </form>
+
+        <p
+            class="mt-6 pt-6 border-t border-slate-200 text-center text-sm text-slate-600"
+        >
+            ¿Ya tenés cuenta?
+            <a
+                href="/login"
+                onclick={irALogin}
+                class="font-semibold text-blue-700 hover:underline"
+            >
+                Iniciá sesión
+            </a>
+        </p>
+    {/if}
+</AuthLayout>

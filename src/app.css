@@ -580,6 +580,40 @@ body {
     }
 }
 
+/* =====================================================
+   FORMULARIOS: campo de texto reutilizable (C-08)
+   Va dentro de @layer components para que las utilidades
+   de Tailwind (pl-10, pr-12...) puedan sobrescribirlo.
+   ===================================================== */
+@layer components {
+    .pt-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background-color: var(--pt-gray-50);
+        border: 1px solid var(--pt-gray-300);
+        border-radius: var(--pt-radius-md);
+        color: var(--pt-gray-800);
+        font-size: 0.875rem;
+        transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .pt-input::placeholder {
+        color: var(--pt-gray-500);
+    }
+
+    .pt-input:focus-visible {
+        background-color: #fff;
+        border-color: var(--pt-blue);
+        outline: 2px solid var(--pt-blue);
+        outline-offset: 0;
+    }
+
+    .pt-input[aria-invalid="true"] {
+        border-color: var(--pt-red-dark);
+        background-color: #fef2f2;
+    }
+}
+
 /* C-21 / C-23: Respetar prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
 
