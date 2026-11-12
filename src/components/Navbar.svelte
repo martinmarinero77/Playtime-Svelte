@@ -1,13 +1,13 @@
 <script>
     import { obtenerUsuarioActual } from "../lib/api.js";
+    import { tema, toggleTema } from "../lib/tema.svelte.js";
 
-    export let activePage = "home";
-    export let onNavigate = () => {};
+    let { activePage = "home", onNavigate = () => {} } = $props();
 
     const usuario = obtenerUsuarioActual();
 
-    let sidebarAbierta = false;
-    let showLogoutModal = false;
+    let sidebarAbierta = $state(false);
+    let showLogoutModal = $state(false);
 
     function irA(pagina, opciones = {}) {
         sidebarAbierta = false;
@@ -79,6 +79,43 @@
             <div class="pt-brand-sub">Reservas y Comunidad</div>
         </div>
     </button>
+
+    <!-- Toggle accesible de Modo Oscuro debajo del logo -->
+    <div class="px-4 pb-2">
+        <button
+            type="button"
+            role="switch"
+            aria-checked={tema.oscuro}
+            aria-label="Activar modo oscuro"
+            onclick={toggleTema}
+            class="w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 flex items-center justify-between gap-2 cursor-pointer transition-colors"
+        >
+            <span
+                class="flex items-center gap-2 text-xs font-semibold text-white"
+            >
+                <i
+                    class="bi {tema.oscuro
+                        ? 'bi-moon-stars-fill text-amber-300'
+                        : 'bi-sun-fill text-amber-300'}"
+                    aria-hidden="true"
+                ></i>
+                <span>{tema.oscuro ? "Modo oscuro" : "Modo claro"}</span>
+            </span>
+
+            <span
+                aria-hidden="true"
+                class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200 motion-reduce:transition-none {tema.oscuro
+                    ? 'bg-emerald-500'
+                    : 'bg-white/30'}"
+            >
+                <span
+                    class="inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 motion-reduce:transition-none {tema.oscuro
+                        ? 'translate-x-4'
+                        : 'translate-x-0'}"
+                ></span>
+            </span>
+        </button>
+    </div>
 
     <div class="pt-nav-label">Menú Principal</div>
     <nav class="pt-nav" aria-label="Secciones de PlayTime">

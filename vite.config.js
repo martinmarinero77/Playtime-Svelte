@@ -8,4 +8,13 @@ export default defineConfig({
     svelte(),
     tailwindcss()
   ],
+  server: {
+    allowedHosts: true, // Permite acceder desde links de ngrok o túneles externos
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5254',
+        changeOrigin: true,
+      },
+    },
+  },
 })

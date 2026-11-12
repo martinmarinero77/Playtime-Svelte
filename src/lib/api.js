@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5254/api";
+const API_BASE = "/api";
 
 export function obtenerToken() {
     return (

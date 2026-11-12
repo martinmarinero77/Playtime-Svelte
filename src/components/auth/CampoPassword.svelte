@@ -1,6 +1,4 @@
 <script>
-    // Campo de contraseña reutilizable con botón para mostrar/ocultar.
-    // value usa $bindable() para que el padre pueda hacer bind:value (Apunte Svelte §5.2)
     let {
         id,
         label,
@@ -43,7 +41,10 @@
             aria-controls={id}
             class="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer"
         >
-            <i class="bi {visible ? 'bi-eye-slash' : 'bi-eye'}" aria-hidden="true"></i>
+            <i
+                class="bi {visible ? 'bi-eye-slash' : 'bi-eye'}"
+                aria-hidden="true"
+            ></i>
         </button>
     </div>
 </div>
