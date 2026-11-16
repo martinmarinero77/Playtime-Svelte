@@ -196,6 +196,10 @@ export const equiposApi = {
             method: "PUT",
             body: JSON.stringify(dto),
         }),
+    eliminar: (equipoId) =>
+        peticion(`/equipos/${equipoId}`, {
+            method: "DELETE",
+        }),
     agregarMiembro: (equipoId, payload) =>
         peticion(`/equipos/${equipoId}/miembros`, {
             method: "POST",

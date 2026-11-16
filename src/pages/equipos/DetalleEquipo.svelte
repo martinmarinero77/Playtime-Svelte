@@ -130,6 +130,28 @@
             procesandoAccion = false;
         }
     }
+
+    async function handleEliminarEquipo() {
+        if (!equipo) return;
+        if (
+            !confirm(
+                `¿Seguro que querés eliminar definitivamente el equipo "[${equipo.sigla}] ${equipo.nombre}"? Esta acción no se puede deshacer.`,
+            )
+        ) {
+            return;
+        }
+
+        errorMsg = "";
+        procesandoAccion = true;
+        try {
+            await equiposApi.eliminar(equipo.id);
+            onNavigate("equipos");
+        } catch (err) {
+            errorMsg = err.message;
+        } finally {
+            procesandoAccion = false;
+        }
+    }
 </script>
 
 <Navbar activePage="equipos" {onNavigate} />
@@ -147,15 +169,30 @@
             </button>
 
             {#if equipo?.soyCapitan}
-                <button
-                    type="button"
-                    onclick={() =>
-                        onNavigate("editar-equipo", { equipoId: equipo.id })}
-                    class="btn-pt btn-pt-primary btn-pt-sm"
-                >
-                    <i class="bi bi-pencil-square" aria-hidden="true"></i>
-                    <span>Editar Datos del Equipo</span>
-                </button>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button
+                        type="button"
+                        disabled={procesandoAccion}
+                        onclick={() =>
+                            onNavigate("editar-equipo", {
+                                equipoId: equipo.id,
+                            })}
+                        class="btn-pt btn-pt-primary btn-pt-sm"
+                    >
+                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                        <span>Editar Datos del Equipo</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        disabled={procesandoAccion}
+                        onclick={handleEliminarEquipo}
+                        class="btn-pt btn-pt-danger-soft btn-pt-sm"
+                    >
+                        <i class="bi bi-trash-fill" aria-hidden="true"></i>
+                        <span>Eliminar Equipo</span>
+                    </button>
+                </div>
             {/if}
         </div>
 
